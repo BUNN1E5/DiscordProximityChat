@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using Discord;
 using OWML.Common;
-using OWML.Logging;
 using OWML.ModHelper;
+using OWML.Utils;
 using QSB.Menus;
 using QSB.Player;
-using QSB.Player.TransformSync;
-using QSB.PlayerBodySetup.Remote;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using Random = System.Random;
+using QSB.WorldSync;
+
 
 namespace DiscordProximityChat
 {
@@ -22,21 +18,62 @@ namespace DiscordProximityChat
             ModHelper.Console.WriteLine($"{nameof(DiscordProximityChat)} is loaded!", MessageType.Success);
 
             //Thanks to QSB I dont need to make this file lmao
-            ModHelper.Interaction.GetModApi<IMenuAPI>("_nebula.MenuFramework");
+            //ModHelper.Interaction.GetModApi<IMenuAPI>("_nebula.MenuFramework");
+            //TODO :: ADD A VOLUME SLIDER
 
             //We do this to setup the Discord Manager for the first time
             //Use instance otherwise
-            DiscordManager discordManager = new DiscordManager();
+            DiscordManager.Init();
+
+            LoadManager.OnCompleteSceneLoad += (scene, loadScene) => {
+                ModHelper.Events.Unity.RunWhen(() => QSBWorldSync.AllObjectsReady, () => {
+                    SetupSignalScopes(scene, loadScene);
+                });
+            };
+
+            QSBPlayerManager.OnAddPlayer += SetupPlayer;
+            QSBPlayerManager.OnRemovePlayer += CleanUpSignal;
+
+
+
         }
 
         public void FixedUpdate(){
             try{
-                DiscordManager.instance.RunCallbacks();
-                DiscordManager.instance.DiscordVolumeUpdater();
-                //ModHelper.Console.WriteLine("UserID :: " + discordManager.getUserID(), MessageType.Success);
+                DiscordManager.RunCallbacks();
+                DiscordManager.DiscordVolumeUpdater();
             } catch(ResultException e) {
                 ModHelper.Console.WriteLine("Cant get CurrentUser : " + e, MessageType.Error);
             }
+        }
+
+        void SetupSignalScopes(OWScene scene, OWScene loadScene){
+            if (loadScene != OWScene.SolarSystem) return;
+            QSBPlayerManager.PlayerList.ForEach(SetupPlayer);
+        }
+
+        public void SetupPlayer(PlayerInfo playerInfo){
+            if (playerInfo.IsLocalPlayer)
+                return;
+            
+            ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady, () => {
+                ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
+                AudioSignal signal = playerInfo.Body.AddComponent<AudioSignal>();
+                signal._frequency = SignalFrequency.Traveler;
+                if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
+                    Constants.PlayerSignals.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
+                    Constants.ReversePlayerSignals.Add(Constants.PlayerSignals[playerInfo],  playerInfo);
+                }
+
+                signal._name = Constants.PlayerSignals[playerInfo];
+                ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);
+            });
+        }
+
+        public void CleanUpSignal(PlayerInfo playerInfo){
+            Constants.ReversePlayerSignals.Remove(Constants.PlayerSignals[playerInfo]);
+            Constants.PlayerSignals.Remove(playerInfo);
+            EnumUtils.Remove<SignalName>(playerInfo.Name);
         }
     }
 }

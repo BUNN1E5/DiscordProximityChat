@@ -1,50 +1,32 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Threading;
 using QSB.Messaging;
 using QSB.Player;
 using Discord;
 using OWML.Common;
-using OWML.ModHelper;
-using OWML.Utils;
 using QSB.Player.TransformSync;
 using UnityEngine;
-using Mirror;
 using QSB;
 
 namespace DiscordProximityChat{
-    public class DiscordManager{
-        private static DiscordManager _instance;
+    public static class DiscordManager{
 
-        public static DiscordManager instance{
-            get{
-                if (_instance == null)
-                    _instance = new DiscordManager();
-                return _instance;
-            }
-        }
-
-        public readonly Dictionary<uint, long> PlayerDiscordID = new Dictionary<uint, long>();
-        private readonly long clientID = 1032464113953165352;
-        private string lobbySecret; //Only the host uses this variable
-        public long lobbyID;
-
-        public Discord.Discord discord;
-
-        public DiscordManager(){
-            _instance = this;
-
+        public static readonly Dictionary<uint, long> PlayerDiscordID = new Dictionary<uint, long>();
+        
+        public static long lobbyID;
+        private static string lobbySecret; //Only the host uses this variable
+        public static Discord.Discord discord;
+        
+        public static void Init(){
             DiscordProximityChat.instance.ModHelper.Console.WriteLine("Initializing Discord API");
             //discord = new Discord.Discord(clientID, (long) Discord.CreateFlags.NoRequireDiscord);
-            discord = new Discord.Discord(clientID, (UInt64) Discord.CreateFlags.Default);
+            discord = new Discord.Discord(Constants.clientID, (UInt64) Discord.CreateFlags.Default);
 
             discord.SetLogHook(Discord.LogLevel.Debug, LogProblems);
             DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord API Initialized", MessageType.Success);
             discord.RunCallbacks(); //Run the callbacks at least once to try and get the UserID
 
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("UserID :: " + getUserID(), MessageType.Success);
+            DiscordProximityChat.instance.ModHelper.Console.WriteLine("UserID :: " + GetUserID(), MessageType.Success);
 
             QSBPlayerManager.OnAddPlayer += OnQSBAddPlayer;
             QSBPlayerManager.OnRemovePlayer += RemovePlayer;
@@ -52,7 +34,7 @@ namespace DiscordProximityChat{
             
         }
 
-        public void RunCallbacks(){
+        public static void RunCallbacks(){
             try{
                 discord.RunCallbacks();
             }
@@ -61,35 +43,35 @@ namespace DiscordProximityChat{
             }
         }
 
-        void LogProblems(Discord.LogLevel level, string message){
+        static void LogProblems(Discord.LogLevel level, string message){
             DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord:" + level + " - " + message,MessageType.Error);
         }
 
-        long getUserID(){
+        static long GetUserID(){
             long id = 0;
             try{
                 id = discord.GetUserManager().GetCurrentUser().Id;
             } catch (ResultException e){
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord::" + e.Result, MessageType.Error);
                 discord.RunCallbacks();
-                return getUserID();
+                return GetUserID();
             }
             return id;
         }
 
-        void OnQSBAddPlayer(PlayerInfo info){
+        static void OnQSBAddPlayer(PlayerInfo info){
             DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => PlayerTransformSync.LocalInstance, () => {
                 SendLobbyMessage(info);
                 if (info.IsLocalPlayer)
                         return;
                 
-                long discordUserID = getUserID();
+                long discordUserID = GetUserID();
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Sending QSB Message to " + info + " :: " + discordUserID + ")", MessageType.Info);
                 new DiscordIDMessage(QSBPlayerManager.LocalPlayerId, discord.GetUserManager().GetCurrentUser().Id){To = info.PlayerId}.Send();
             });
         }
 
-        void CreateDiscordLobby(){
+        static void CreateDiscordLobby(){
             DiscordProximityChat.instance.ModHelper.Console.WriteLine("Creating discord Lobby", MessageType.Info);
             //If we are the host create a discord lobby
             var txn = discord.GetLobbyManager().GetLobbyCreateTransaction();
@@ -102,7 +84,7 @@ namespace DiscordProximityChat{
                         lobbySecret = discord.GetLobbyManager().GetLobbyActivitySecret(lobby.Id);
                         DiscordProximityChat.instance.ModHelper.Console.WriteLine("Created lobby " + lobby.Id, MessageType.Success);
                         
-                        DiscordManager.instance.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
+                        DiscordManager.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
                         {
                             if (result == Discord.Result.Ok)
                             {
@@ -117,36 +99,41 @@ namespace DiscordProximityChat{
             });
         }
 
-        void SendLobbyMessage(PlayerInfo info){
+        static void SendLobbyMessage(PlayerInfo info){
             if (QSBCore.IsHost){
                 if(lobbySecret == null)
                     CreateDiscordLobby();
                 discord.RunCallbacks(); //Cause Why not
+                
+                DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => lobbySecret != null, () => {
+                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("Sending Lobby Secret to " + info + " :: " + lobbySecret + ")", MessageType.Info);
+                    new DiscordLobbyMessage(lobbySecret){To = info.PlayerId}.Send();
+                });
             }
-
-            DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => lobbySecret != null, () => {
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Sending Lobby Secret to " + info + " :: " + lobbySecret + ")", MessageType.Info);
-                new DiscordLobbyMessage(lobbySecret){To = info.PlayerId}.Send();
-            });
         }
 
-        void RemovePlayer(PlayerInfo info){
+        static void RemovePlayer(PlayerInfo info){
             PlayerDiscordID.Remove(info.PlayerId);
 
             if (lobbyID == 0)
                 return;
-            
-            discord.GetLobbyManager().DisconnectVoice(lobbyID, result => {
-                discord.GetLobbyManager().DisconnectLobby(lobbyID, result1 => {
-                    //Hope for the best
+
+            if (info.IsLocalPlayer){
+                discord.GetLobbyManager().DisconnectVoice(lobbyID, result => {
+                    discord.GetLobbyManager().DisconnectLobby(lobbyID, result1 => {
+                        //Hope for the best
+                    });
                 });
-            });
-            
+            }
+
         }
 
-        public void DiscordVolumeUpdater(){
+        public static void DiscordVolumeUpdater(){
             foreach (var playerKV in PlayerDiscordID){
                 PlayerInfo player = QSBPlayerManager.GetPlayer(playerKV.Key);
+                if (!player.IsReady)
+                    return;
+                
                 if (player == QSBPlayerManager.LocalPlayer)
                     return;
                 float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
@@ -157,69 +144,5 @@ namespace DiscordProximityChat{
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, bolume);
             }
         }
-    }
-
-    public class DiscordIDMessage : QSBMessage{
-
-        private uint networkId;
-        private long discordID;
-
-        public DiscordIDMessage(uint networkId, long discordID) : base(){
-            this.networkId = networkId;
-            this.discordID = discordID;
-        }
-
-        public override void Serialize(NetworkWriter writer){
-            base.Serialize(writer);
-            writer.Write(networkId);
-            writer.Write(discordID);
-        }
-
-        public override void Deserialize(NetworkReader reader){
-            base.Deserialize(reader);
-            networkId = reader.Read<uint>();
-            discordID = reader.Read<long>();
-        }
-
-        public override void OnReceiveRemote(){
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Recieved QSB Message From " + QSBPlayerManager.GetPlayer(networkId) + " :: " + discordID,MessageType.Success);
-            if (DiscordManager.instance.PlayerDiscordID.ContainsKey(networkId))
-                return;
-            DiscordManager.instance.PlayerDiscordID.Add(networkId, discordID);
-        }
-    }
-
-    public class DiscordLobbyMessage : QSBMessage<string>{
-
-        public DiscordLobbyMessage(string data) : base(data){}
-        
-        public override void OnReceiveRemote(){
-            ConnectToVoice();
-        }
-        
-        public override void OnReceiveLocal(){
-            ConnectToVoice();
-        }
-
-        public void ConnectToVoice(){
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Receieved Lobby ID :: " + Data,MessageType.Success);
-            DiscordManager.instance.discord.GetLobbyManager().ConnectLobbyWithActivitySecret(Data,(Result result, ref Lobby lobby) => {
-                if (result == Discord.Result.Ok)
-                {
-                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("Connected to lobby " + lobby.Id);
-                    DiscordManager.instance.lobbyID = lobby.Id;
-                    DiscordManager.instance.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
-                    {
-                        if (result == Discord.Result.Ok)
-                        {
-                            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Voice connected!");
-                        }
-                    });
-                }
-            });
-            
-            
-        }
-
     }
 }
