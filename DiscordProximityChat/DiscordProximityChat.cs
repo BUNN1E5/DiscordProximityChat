@@ -32,7 +32,7 @@ namespace DiscordProximityChat
         public void FixedUpdate(){
             try{
                 DiscordManager.instance.RunCallbacks();
-                //DiscordManager.instance.DiscordVolumeUpdater();
+                DiscordManager.instance.DiscordVolumeUpdater();
                 //ModHelper.Console.WriteLine("UserID :: " + discordManager.getUserID(), MessageType.Success);
             } catch(ResultException e) {
                 ModHelper.Console.WriteLine("Cant get CurrentUser : " + e, MessageType.Error);

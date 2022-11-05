@@ -103,6 +103,14 @@ namespace DiscordProximityChat{
                         discord.GetLobbyManager().OpenNetworkChannel(lobby.Id, 0, true);
                         discord.GetLobbyManager().OpenNetworkChannel(lobby.Id, 1, false);
                         DiscordProximityChat.instance.ModHelper.Console.WriteLine("Created lobby " + lobby.Id, MessageType.Success);
+                        
+                        DiscordManager.instance.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
+                        {
+                            if (result == Discord.Result.Ok)
+                            {
+                                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Voice connected!");
+                            }
+                        });
                     }
                 }catch(ResultException e){
                     DiscordProximityChat.instance.ModHelper.Console.WriteLine("Failed to create Lobby! Trying Again", MessageType.Error);
