@@ -66,6 +66,9 @@ namespace DiscordProximityChat
                 }
 
                 signal._name = Constants.PlayerSignals[playerInfo];
+                
+                PlayerData._currentGameSave.knownSignals.Add((int)Constants.PlayerSignals[playerInfo], true);
+                
                 ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);
             });
         }
