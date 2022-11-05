@@ -1,0 +1,10 @@
+{
+  "filename": "DiscordProximityChat.dll",
+  "author": "BUNN1E5",
+  "name": "Discord Proximity Chat",
+  "uniqueName": "BUNN1E5.DiscordProximityChat",
+  "version": "0.0.1",
+  "owmlVersion": "2.3.2",
+
+  "dependencies": [ "Raicuparta.QuantumSpaceBuddies" , "_nebula.MenuFramework"]
+}

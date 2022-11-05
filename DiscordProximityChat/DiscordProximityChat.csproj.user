@@ -1,0 +1,5 @@
+﻿<Project>
+  <PropertyGroup>
+    <OutputPath>$(HOME)/.steam/steam/steamapps/compatdata/3041664960/pfx/drive_c/users/steamuser/AppData/Roaming/OuterWildsModManager/OWML/Mods/BUNN1E5.DiscordProximityChat</OutputPath>
+  </PropertyGroup>
+</Project>
