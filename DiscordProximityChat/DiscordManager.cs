@@ -141,13 +141,14 @@ namespace DiscordProximityChat{
                 byte bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
 
                 if (QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals.Length > 0){
+                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("SignalScope Volume " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
                     discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)Mathf.Clamp((150 * QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume), 0, 150));
                     return;
                 }
 
 
-                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
-                discord.GetVoiceManager().SetLocalVolume(playerKV.Value, 25);
+                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
+                discord.GetVoiceManager().SetLocalVolume(playerKV.Value, bolume);
             }
         }
     }
