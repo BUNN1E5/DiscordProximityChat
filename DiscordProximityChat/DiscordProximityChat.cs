@@ -36,9 +36,6 @@ namespace DiscordProximityChat
 
             QSBPlayerManager.OnAddPlayer += SetupPlayer;
             QSBPlayerManager.OnRemovePlayer += CleanUpSignal;
-
-
-
         }
 
         public void FixedUpdate(){
@@ -57,12 +54,12 @@ namespace DiscordProximityChat
 
         public void SetupPlayer(PlayerInfo playerInfo)
         {
-            DiscordManager.SetUpPlayer(playerInfo);
-
-            if (playerInfo.IsLocalPlayer)
-                return;
-            
             ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady, () => {
+                DiscordManager.SetUpPlayer(playerInfo);
+
+                if (playerInfo.IsLocalPlayer)
+                    return;
+
                 ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
                 AudioSignal signal = playerInfo.Body.AddComponent<AudioSignal>();
                 signal._frequency = SignalFrequency.Traveler;

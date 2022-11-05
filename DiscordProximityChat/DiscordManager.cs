@@ -172,32 +172,24 @@ namespace DiscordProximityChat{
 
         public static void SetUpPlayer(PlayerInfo playerInfo)
         {
-            if (playerInfo.Body == null) return;
+            if (playerInfo.Body == null)
+                return;
 
             var root = playerInfo.Body.transform.Find(playerInfo.IsLocalPlayer ? "Traveller_HEA_Player_v2" : "REMOTE_Traveller_HEA_Player_v2");
 
             if (root == null)
-            {
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("### Root not found");
                 return;
-            }
             
             var playerHead = root.Find(
                 "Traveller_Rig_v01:Traveller_Trajectory_Jnt/Traveller_Rig_v01:Traveller_ROOT_Jnt/Traveller_Rig_v01:Traveller_Spine_01_Jnt/Traveller_Rig_v01:Traveller_Spine_02_Jnt/Traveller_Rig_v01:Traveller_Spine_Top_Jnt/Traveller_Rig_v01:Traveller_Neck_01_Jnt/Traveller_Rig_v01:Traveller_Neck_Top_Jnt");
 
             if (playerHead == null)
-            {
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("### playerHead not found");
                 return;
-            }
 
             PlayerDiscordID.TryGetValue(playerInfo.PlayerId, out var discordId);
 
             if (discordId == default)
-            {
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("### discordId not found");
                 return;
-            }
             
             DiscordProximityChat.instance.ModHelper.Console.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
             
