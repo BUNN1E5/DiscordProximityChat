@@ -11,8 +11,9 @@ using QSB;
 namespace DiscordProximityChat{
     public static class DiscordManager{
 
-        public static readonly Dictionary<uint, long> PlayerDiscordID = new Dictionary<uint, long>();
-        
+        public static readonly Dictionary<uint, long> PlayerDiscordID = new();
+        public static readonly Dictionary<long, bool> isSpeaking = new();
+
         public static long lobbyID;
         private static string lobbySecret; //Only the host uses this variable
         public static Discord.Discord discord;
@@ -30,8 +31,9 @@ namespace DiscordProximityChat{
 
             QSBPlayerManager.OnAddPlayer += OnQSBAddPlayer;
             QSBPlayerManager.OnRemovePlayer += RemovePlayer;
-            
-            
+
+            discord.GetLobbyManager().OnSpeaking += OnSpeaking;
+
         }
 
         public static void RunCallbacks(){
@@ -41,6 +43,10 @@ namespace DiscordProximityChat{
             catch (Discord.ResultException e){
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord::" + e.Result, MessageType.Error);
             }
+        }
+
+        static void OnSpeaking(long lobbyId, long userId, bool speaking){
+            isSpeaking[userId] = speaking;
         }
 
         static void LogProblems(Discord.LogLevel level, string message){
@@ -127,28 +133,28 @@ namespace DiscordProximityChat{
             }
 
         }
-
         public static void DiscordVolumeUpdater(){
             foreach (var playerKV in PlayerDiscordID){
+                if (!isSpeaking[playerKV.Value]) //If we aren't speaking don't worry about setting volume
+                    return;
+                
                 PlayerInfo player = QSBPlayerManager.GetPlayer(playerKV.Key);
                 if (!player.IsReady)
                     return;
                 
                 if (player == QSBPlayerManager.LocalPlayer)
                     return;
+                
                 float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
                 float maxDist = 50;
-                byte bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
+                int bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
 
-                if (QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals.Length > 0){
-                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("SignalScope Volume " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
-                    discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)Mathf.Clamp((150 * QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume), 0, 150));
-                    return;
+                if(QSBPlayerManager.LocalPlayer.SignalscopeEquipped){
+                    bolume = Mathf.Max(bolume,(int) Mathf.Clamp((150 * QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume), 0,150));
                 }
-
-
+                
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
-                discord.GetVoiceManager().SetLocalVolume(playerKV.Value, bolume);
+                discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }
         }
     }
