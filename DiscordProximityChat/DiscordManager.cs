@@ -151,9 +151,11 @@ namespace DiscordProximityChat{
 
                 if(QSBPlayerManager.LocalPlayer.SignalscopeEquipped){
                     bolume = Mathf.Max(bolume,(int) Mathf.Clamp((150 * QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume), 0,150));
+                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("SignalScope bolume  " + QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume, MessageType.Info);
                 }
-                
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
+                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume  " + bolume, MessageType.Info);
+
+                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }
         }
