@@ -142,6 +142,7 @@ namespace DiscordProximityChat{
 
                 if (QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals.Length > 0){
                     discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)Mathf.Clamp((150 * QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume), 0, 150));
+                    return;
                 }
 
 
