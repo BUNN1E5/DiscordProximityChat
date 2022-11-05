@@ -9,9 +9,9 @@ namespace DiscordProximityChat{
         public static bool SignalNameToStringPatch(SignalName name, ref string __result){
             if (Constants.ReversePlayerSignals.ContainsKey(name)){
                 __result = Constants.ReversePlayerSignals[name].Name;
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
     }
 }

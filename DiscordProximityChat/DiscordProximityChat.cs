@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Reflection;
 using Discord;
+using HarmonyLib;
 using OWML.Common;
 using OWML.ModHelper;
 using OWML.Utils;
@@ -16,6 +18,7 @@ namespace DiscordProximityChat
         private void Start(){
             instance = this;
             ModHelper.Console.WriteLine($"{nameof(DiscordProximityChat)} is loaded!", MessageType.Success);
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
             //Thanks to QSB I dont need to make this file lmao
             //ModHelper.Interaction.GetModApi<IMenuAPI>("_nebula.MenuFramework");
@@ -66,8 +69,7 @@ namespace DiscordProximityChat
                 }
 
                 signal._name = Constants.PlayerSignals[playerInfo];
-                
-                
+
                 PlayerData._currentGameSave.knownSignals[(int)Constants.PlayerSignals[playerInfo]] = true;
                 
                 ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);

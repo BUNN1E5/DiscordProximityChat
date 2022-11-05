@@ -140,7 +140,7 @@ namespace DiscordProximityChat{
                 float maxDist = 50;
                 byte bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
                 
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
+                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, 100);
             }
         }
