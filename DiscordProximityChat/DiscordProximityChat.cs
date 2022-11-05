@@ -55,7 +55,10 @@ namespace DiscordProximityChat
             QSBPlayerManager.PlayerList.ForEach(SetupPlayer);
         }
 
-        public void SetupPlayer(PlayerInfo playerInfo){
+        public void SetupPlayer(PlayerInfo playerInfo)
+        {
+            DiscordManager.SetUpPlayer(playerInfo);
+
             if (playerInfo.IsLocalPlayer)
                 return;
             
