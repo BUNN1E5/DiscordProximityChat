@@ -13,6 +13,7 @@ namespace DiscordProximityChat{
 
         public static readonly Dictionary<uint, long> PlayerDiscordID = new();
         public static readonly Dictionary<long, bool> isSpeaking = new();
+        public static readonly Dictionary<long, TalkingAnimationController> talkingAnimationControllers = new();
 
         public static long lobbyID;
         private static string lobbySecret; //Only the host uses this variable
@@ -47,6 +48,12 @@ namespace DiscordProximityChat{
 
         static void OnSpeaking(long lobbyId, long userId, bool speaking){
             isSpeaking[userId] = speaking;
+
+            talkingAnimationControllers.TryGetValue(userId, out var talkingAnimationController);
+            if (talkingAnimationController != null)
+            {
+                talkingAnimationController.IsTalking = speaking;
+            }
         }
 
         static void LogProblems(Discord.LogLevel level, string message){
@@ -68,12 +75,15 @@ namespace DiscordProximityChat{
         static void OnQSBAddPlayer(PlayerInfo info){
             DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => PlayerTransformSync.LocalInstance, () => {
                 SendLobbyMessage(info);
+                var discordUserID = GetUserID();
                 if (info.IsLocalPlayer)
-                        return;
+                {
+                    PlayerDiscordID[QSBPlayerManager.LocalPlayerId] = discordUserID;
+                    return;
+                }
                 
-                long discordUserID = GetUserID();
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Sending QSB Message to " + info + " :: " + discordUserID + ")", MessageType.Info);
-                new DiscordIDMessage(QSBPlayerManager.LocalPlayerId, discord.GetUserManager().GetCurrentUser().Id){To = info.PlayerId}.Send();
+                new DiscordIDMessage(QSBPlayerManager.LocalPlayerId, discordUserID){To = info.PlayerId}.Send();
             });
         }
 
@@ -135,16 +145,16 @@ namespace DiscordProximityChat{
         }
         public static void DiscordVolumeUpdater(){
             foreach (var playerKV in PlayerDiscordID){
-                if (!isSpeaking[playerKV.Value]) //If we aren't speaking don't worry about setting volume
-                    return;
-                
                 PlayerInfo player = QSBPlayerManager.GetPlayer(playerKV.Key);
                 if (!player.IsReady)
                     return;
                 
                 if (player == QSBPlayerManager.LocalPlayer)
                     return;
-                
+
+                if (!isSpeaking[playerKV.Value]) //If we aren't speaking don't worry about setting volume
+                    return;
+
                 float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
                 float maxDist = 50;
                 int bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
@@ -156,6 +166,40 @@ namespace DiscordProximityChat{
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }
+        }
+
+        public static void SetUpPlayer(PlayerInfo playerInfo)
+        {
+            if (playerInfo.Body == null) return;
+
+            var root = playerInfo.Body.transform.Find(playerInfo.IsLocalPlayer ? "Traveller_HEA_Player_v2" : "REMOTE_Traveller_HEA_Player_v2");
+
+            if (root == null)
+            {
+                DiscordProximityChat.instance.ModHelper.Console.WriteLine("### Root not found");
+                return;
+            }
+            
+            var playerHead = root.Find(
+                "Traveller_Rig_v01:Traveller_Trajectory_Jnt/Traveller_Rig_v01:Traveller_ROOT_Jnt/Traveller_Rig_v01:Traveller_Spine_01_Jnt/Traveller_Rig_v01:Traveller_Spine_02_Jnt/Traveller_Rig_v01:Traveller_Spine_Top_Jnt/Traveller_Rig_v01:Traveller_Neck_01_Jnt/Traveller_Rig_v01:Traveller_Neck_Top_Jnt");
+
+            if (playerHead == null)
+            {
+                DiscordProximityChat.instance.ModHelper.Console.WriteLine("### playerHead not found");
+                return;
+            }
+
+            PlayerDiscordID.TryGetValue(playerInfo.PlayerId, out var discordId);
+
+            if (discordId == default)
+            {
+                DiscordProximityChat.instance.ModHelper.Console.WriteLine("### discordId not found");
+                return;
+            }
+            
+            DiscordProximityChat.instance.ModHelper.Console.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
+            
+            talkingAnimationControllers[discordId] = TalkingAnimationController.Create(playerHead);
         }
     }
 }
