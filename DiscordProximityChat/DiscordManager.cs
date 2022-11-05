@@ -29,6 +29,7 @@ namespace DiscordProximityChat{
         public readonly Dictionary<uint, long> PlayerDiscordID = new Dictionary<uint, long>();
         private readonly long clientID = 1032464113953165352;
         private string lobbySecret; //Only the host uses this variable
+        public long lobbyID;
 
         public Discord.Discord discord;
 
@@ -99,9 +100,6 @@ namespace DiscordProximityChat{
                 try{
                     if (result == Discord.Result.Ok){
                         lobbySecret = discord.GetLobbyManager().GetLobbyActivitySecret(lobby.Id);
-                        discord.GetLobbyManager().ConnectNetwork(lobby.Id);
-                        discord.GetLobbyManager().OpenNetworkChannel(lobby.Id, 0, true);
-                        discord.GetLobbyManager().OpenNetworkChannel(lobby.Id, 1, false);
                         DiscordProximityChat.instance.ModHelper.Console.WriteLine("Created lobby " + lobby.Id, MessageType.Success);
                         
                         DiscordManager.instance.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
@@ -134,6 +132,16 @@ namespace DiscordProximityChat{
 
         void RemovePlayer(PlayerInfo info){
             PlayerDiscordID.Remove(info.PlayerId);
+
+            if (lobbyID == 0)
+                return;
+            
+            discord.GetLobbyManager().DisconnectVoice(lobbyID, result => {
+                discord.GetLobbyManager().DisconnectLobby(lobbyID, result1 => {
+                    //Hope for the best
+                });
+            });
+            
         }
 
         public void DiscordVolumeUpdater(){
@@ -141,11 +149,11 @@ namespace DiscordProximityChat{
                 PlayerInfo player = QSBPlayerManager.GetPlayer(playerKV.Key);
                 if (player == QSBPlayerManager.LocalPlayer)
                     return;
-                float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).sqrMagnitude;
-                float maxDist = 50*50;
-                byte bolume = (byte) Mathf.Clamp(100 * (maxDist - dist) / maxDist, 0, 200);
+                float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
+                float maxDist = 50;
+                byte bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
 
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + bolume, MessageType.Info);
+                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + bolume, MessageType.Info);
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, bolume);
             }
         }
@@ -199,6 +207,7 @@ namespace DiscordProximityChat{
                 if (result == Discord.Result.Ok)
                 {
                     DiscordProximityChat.instance.ModHelper.Console.WriteLine("Connected to lobby " + lobby.Id);
+                    DiscordManager.instance.lobbyID = lobby.Id;
                     DiscordManager.instance.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
                     {
                         if (result == Discord.Result.Ok)
