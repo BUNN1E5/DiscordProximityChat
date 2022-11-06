@@ -8,6 +8,7 @@ using OWML.Utils;
 using QSB.Menus;
 using QSB.Player;
 using QSB.WorldSync;
+using UnityEngine;
 
 
 namespace DiscordProximityChat

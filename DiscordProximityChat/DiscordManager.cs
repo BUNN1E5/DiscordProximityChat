@@ -160,12 +160,14 @@ namespace DiscordProximityChat{
                 int bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
 
                 if(QSBPlayerManager.LocalPlayer.SignalscopeEquipped){
-                    bolume = Mathf.Max(bolume,(int) Mathf.Clamp((150 * QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume), 0,150));
-                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("SignalScope bolume  " + QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals[0]._activeVolume, MessageType.Info);
+                    foreach (var localSignalscopeStrongestSignal in QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals){
+                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + localSignalscopeStrongestSignal.name + " " + localSignalscopeStrongestSignal._signalVolume, MessageType.Info);
+                        if (Constants.ReversePlayerSignals[localSignalscopeStrongestSignal._name] == player){
+                            bolume = (byte) Mathf.Max(bolume,(int) Mathf.Clamp(150 * localSignalscopeStrongestSignal._signalStrength, 0, 150));
+                            DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + bolume, MessageType.Info);
+                        }
+                    }
                 }
-                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume  " + bolume, MessageType.Info);
-
-                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Setting " + QSBPlayerManager.GetPlayer(playerKV.Key) + " Volume to " + discord.GetVoiceManager().GetLocalVolume(playerKV.Value), MessageType.Info);
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }
         }
