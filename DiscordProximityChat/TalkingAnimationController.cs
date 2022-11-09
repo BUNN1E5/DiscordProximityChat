@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using OWML.ModHelper;
 using QSB.Player;
 using UnityEngine;
 
@@ -54,6 +55,10 @@ namespace DiscordProximityChat{
         private void Update(){
             if (!DiscordManager.isSpeaking.ContainsKey(discordID)){
                 transform.localScale = Vector3.one;
+                return;
+            }
+
+            if (!DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player Head Bobbing")){
                 return;
             }
 

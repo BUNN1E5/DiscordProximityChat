@@ -16,13 +16,16 @@ namespace DiscordProximityChat
     public class DiscordProximityChat : ModBehaviour{
         public static DiscordProximityChat instance;
 
+        public static bool useHeadBobbing = true;
+        
         private void Start(){
             instance = this;
             ModHelper.Console.WriteLine($"{nameof(DiscordProximityChat)} is loaded!", MessageType.Success);
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
             //Thanks to QSB I dont need to make this file lmao
-            //ModHelper.Interaction.GetModApi<IMenuAPI>("_nebula.MenuFramework");
+            //IMenuAPI menuAPI = ModHelper.Interaction.TryGetModApi<IMenuAPI>("_nebula.MenuFramework");
+
             //TODO :: ADD A VOLUME SLIDER
 
             //We do this to setup the Discord Manager for the first time
@@ -54,37 +57,37 @@ namespace DiscordProximityChat
 
         public void SetupPlayer(PlayerInfo playerInfo)
         {
-            ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady, () => {
-                ModHelper.Events.Unity.RunWhen(() => playerInfo.Body != null, () => { //Redundant but it works better ¯\_(ツ)_/¯
-                    if (playerInfo.Body == null){
-                        ModHelper.Console.WriteLine("How did you even get here?", MessageType.Error);
-                        return;
-                    }
+            ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady && playerInfo.Body != null, () => {
+                if (playerInfo.Body == null){
+                    ModHelper.Console.WriteLine("How did you even get here?", MessageType.Error);
+                    return;
+                }
 
-                    TalkingAnimationManager.SetupTalkingHead(playerInfo); //Setup Talking Heads for Everyone
+                TalkingAnimationManager.SetupTalkingHead(playerInfo); //Setup Talking Heads for Everyone
 
-                    if (playerInfo.IsLocalPlayer)
-                        return;
+                if (playerInfo.IsLocalPlayer)
+                    return;
 
-                    //Everything here is for only the remote players
-                    ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
-                    if (!Constants.PlayerSignals.Contains(playerInfo)){
-                        Constants.PlayerSignals.Add(playerInfo, playerInfo.HudMarker.transform.gameObject.AddComponent<AudioSignal>());
-                    }
-                    
-                    AudioSignal signal = Constants.PlayerSignals[playerInfo];
-                    
-                    signal._frequency = SignalFrequency.Traveler;
-                    if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
-                        Constants.PlayerSignalNames.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
-                    }
+                //Everything here is for only the remote players
+                ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
+                if (!Constants.PlayerSignals.Contains(playerInfo)){
+                    Constants.PlayerSignals.Add(playerInfo, playerInfo.HudMarker.transform.gameObject.AddComponent<AudioSignal>());
+                }
+                
+                AudioSignal signal = Constants.PlayerSignals[playerInfo];
+                
+                signal._frequency = SignalFrequency.Traveler;
+                if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
+                    Constants.PlayerSignalNames.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
+                }
+                
+                
 
-                    signal._name = Constants.PlayerSignalNames[playerInfo];
+                signal._name = Constants.PlayerSignalNames[playerInfo];
 
-                    PlayerData._currentGameSave.knownSignals[(int) Constants.PlayerSignalNames[playerInfo]] = true;
+                PlayerData._currentGameSave.knownSignals[(int) Constants.PlayerSignalNames[playerInfo]] = true;
 
-                    ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);
-                });
+                ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);
             });
         }
 

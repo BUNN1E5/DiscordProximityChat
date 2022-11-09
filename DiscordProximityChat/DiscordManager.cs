@@ -17,7 +17,7 @@ namespace DiscordProximityChat{
         public static long lobbyID;
         private static string lobbySecret; //Only the host uses this variable
         public static Discord.Discord discord;
-        
+
         public static void Init(){
             DiscordProximityChat.instance.ModHelper.Console.WriteLine("Initializing Discord API");
             //discord = new Discord.Discord(clientID, (long) Discord.CreateFlags.NoRequireDiscord);
@@ -152,8 +152,24 @@ namespace DiscordProximityChat{
                     return;
 
                 float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
-                float maxDist = 50;
-                int bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
+                
+                float maxDist = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Max Audio Distance");
+                float a = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Audio Falloff Offset (A)");
+                float b = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Audio Falloff Power (B)");
+                float maxVol = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Global Volume");
+                
+                
+                bool clip = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Mute at Max Dist");
+
+                float bolume = Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((maxDist - dist) / maxDist, a, b, clip), 0, maxVol);
+
+                if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){
+                    //Probe acts as speaker
+                    if (player.ProbeBody != null){
+                        float probeDist = (player.ProbeBody.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
+                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((maxDist - dist) / maxDist, a, b, clip), 0, maxVol));
+                    }
+                }
 
                 if (QSBPlayerManager.LocalPlayer == null){
                     DiscordProximityChat.instance.ModHelper.Console.WriteLine("LocalPlayer is null, How did we get here?", MessageType.Error);
@@ -171,8 +187,7 @@ namespace DiscordProximityChat{
 
                     foreach (KeyValuePair<PlayerInfo, AudioSignal> playerSignal in Constants.PlayerSignals){
                         DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + playerSignal.Key.Name + " " + playerSignal.Value._signalStrength, MessageType.Info);
-                        bolume = (byte) Mathf.Max(bolume,(int) Mathf.Clamp(150 * playerSignal.Value._signalStrength, 0, 150));
-                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + bolume, MessageType.Info);
+                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * playerSignal.Value._signalStrength, 0, maxVol));
                     }
                 }
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
