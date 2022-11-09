@@ -132,6 +132,7 @@ namespace DiscordProximityChat{
 
         }
         public static void DiscordVolumeUpdater(){
+            //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Doing the thing!", MessageType.Error);
             foreach (KeyValuePair<uint, long> playerKV in PlayerDiscordID){ //Explicit cause I'm bad at programming
 
                 if (!QSBPlayerManager.PlayerExists(playerKV.Key))
@@ -161,13 +162,13 @@ namespace DiscordProximityChat{
                 
                 bool clip = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Mute at Max Distance");
 
-                float bolume = Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((dist - maxDist) / maxDist, a, b, clip), 0, maxVol);
+                float bolume = Mathf.Clamp(maxVol * Utils.CalculateProximityVolume(1 - ((maxDist - dist) / maxDist), a, b, clip), 0, maxVol);
 
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){
                     //Probe acts as speaker
                     if (player.ProbeBody != null){
                         float probeDist = (player.ProbeBody.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
-                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((probeDist - maxDist) / maxDist, a, b, clip), 0, maxVol));
+                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * Utils.CalculateProximityVolume(1 - ((maxDist - probeDist) / maxDist), a, b, clip), 0, maxVol));
                     }
                 }
 

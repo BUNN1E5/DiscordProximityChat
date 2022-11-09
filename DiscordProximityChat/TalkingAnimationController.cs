@@ -15,8 +15,8 @@ namespace DiscordProximityChat{
             if (playerInfo.Body == null)
                 return;
 
-            if (controllers.ContainsKey(playerInfo.PlayerId))
-                return;
+            // if (controllers.ContainsKey(playerInfo.PlayerId))
+            //     return;
 
             var root = playerInfo.Body.transform.Find(playerInfo.IsLocalPlayer ? "Traveller_HEA_Player_v2" : "REMOTE_Traveller_HEA_Player_v2");
 
