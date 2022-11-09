@@ -11,9 +11,8 @@ using QSB;
 namespace DiscordProximityChat{
     public static class DiscordManager{
 
-        public static readonly Dictionary<uint, long> PlayerDiscordID = new();
+        public static readonly BidirectionalDictionary<uint, long> PlayerDiscordID = new();
         public static readonly Dictionary<long, bool> isSpeaking = new();
-        public static readonly Dictionary<long, TalkingAnimationController> talkingAnimationControllers = new();
 
         public static long lobbyID;
         private static string lobbySecret; //Only the host uses this variable
@@ -40,20 +39,13 @@ namespace DiscordProximityChat{
         public static void RunCallbacks(){
             try{
                 discord.RunCallbacks();
-            }
-            catch (Discord.ResultException e){
+            } catch (Discord.ResultException e){
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord::" + e.Result, MessageType.Error);
             }
         }
 
         static void OnSpeaking(long lobbyId, long userId, bool speaking){
             isSpeaking[userId] = speaking;
-
-            talkingAnimationControllers.TryGetValue(userId, out var talkingAnimationController);
-            if (talkingAnimationController != null)
-            {
-                talkingAnimationController.IsTalking = speaking;
-            }
         }
 
         static void LogProblems(Discord.LogLevel level, string message){
@@ -64,7 +56,7 @@ namespace DiscordProximityChat{
             long id = 0;
             try{
                 id = discord.GetUserManager().GetCurrentUser().Id;
-            } catch (ResultException e){
+            } catch (ResultException e) {
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord::" + e.Result, MessageType.Error);
                 discord.RunCallbacks();
                 return GetUserID();
@@ -76,8 +68,7 @@ namespace DiscordProximityChat{
             DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => PlayerTransformSync.LocalInstance, () => {
                 SendLobbyMessage(info);
                 var discordUserID = GetUserID();
-                if (info.IsLocalPlayer)
-                {
+                if (info.IsLocalPlayer){
                     PlayerDiscordID[QSBPlayerManager.LocalPlayerId] = discordUserID;
                     return;
                 }
@@ -100,10 +91,8 @@ namespace DiscordProximityChat{
                         lobbySecret = discord.GetLobbyManager().GetLobbyActivitySecret(lobby.Id);
                         DiscordProximityChat.instance.ModHelper.Console.WriteLine("Created lobby " + lobby.Id, MessageType.Success);
                         
-                        DiscordManager.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
-                        {
-                            if (result == Discord.Result.Ok)
-                            {
+                        DiscordManager.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) => {
+                            if (result == Discord.Result.Ok){
                                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("Voice connected!");
                             }
                         });
@@ -144,7 +133,7 @@ namespace DiscordProximityChat{
 
         }
         public static void DiscordVolumeUpdater(){
-            foreach (var playerKV in PlayerDiscordID){
+            foreach (KeyValuePair<uint, long> playerKV in PlayerDiscordID){ //Explicit cause I'm bad at programming
                 PlayerInfo player = QSBPlayerManager.GetPlayer(playerKV.Key);
                 if (!player.IsReady)
                     return;
@@ -162,7 +151,7 @@ namespace DiscordProximityChat{
                 if(QSBPlayerManager.LocalPlayer.SignalscopeEquipped){
                     foreach (var localSignalscopeStrongestSignal in QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals){
                         DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + localSignalscopeStrongestSignal.name + " " + localSignalscopeStrongestSignal._signalVolume, MessageType.Info);
-                        if (Constants.ReversePlayerSignals[localSignalscopeStrongestSignal._name] == player){
+                        if (Constants.PlayerSignals[localSignalscopeStrongestSignal._name] == player){
                             bolume = (byte) Mathf.Max(bolume,(int) Mathf.Clamp(150 * localSignalscopeStrongestSignal._signalStrength, 0, 150));
                             DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + bolume, MessageType.Info);
                         }
@@ -170,32 +159,6 @@ namespace DiscordProximityChat{
                 }
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }
-        }
-
-        public static void SetUpPlayer(PlayerInfo playerInfo)
-        {
-            if (playerInfo.Body == null)
-                return;
-
-            var root = playerInfo.Body.transform.Find(playerInfo.IsLocalPlayer ? "Traveller_HEA_Player_v2" : "REMOTE_Traveller_HEA_Player_v2");
-
-            if (root == null)
-                return;
-            
-            var playerHead = root.Find(
-                "Traveller_Rig_v01:Traveller_Trajectory_Jnt/Traveller_Rig_v01:Traveller_ROOT_Jnt/Traveller_Rig_v01:Traveller_Spine_01_Jnt/Traveller_Rig_v01:Traveller_Spine_02_Jnt/Traveller_Rig_v01:Traveller_Spine_Top_Jnt/Traveller_Rig_v01:Traveller_Neck_01_Jnt/Traveller_Rig_v01:Traveller_Neck_Top_Jnt");
-
-            if (playerHead == null)
-                return;
-
-            PlayerDiscordID.TryGetValue(playerInfo.PlayerId, out var discordId);
-
-            if (discordId == default)
-                return;
-            
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
-            
-            talkingAnimationControllers[discordId] = TalkingAnimationController.Create(playerHead);
         }
     }
 }

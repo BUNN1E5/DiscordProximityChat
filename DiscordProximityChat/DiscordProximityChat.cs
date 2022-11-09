@@ -56,17 +56,17 @@ namespace DiscordProximityChat
         public void SetupPlayer(PlayerInfo playerInfo)
         {
             ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady, () => {
-                DiscordManager.SetUpPlayer(playerInfo);
+                TalkingAnimationManager.SetupTalkingHead(playerInfo); //Setup Talking Heads for Everyone
 
                 if (playerInfo.IsLocalPlayer)
                     return;
 
+                //Everything here is for only the remote players
                 ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
                 AudioSignal signal = playerInfo.Body.AddComponent<AudioSignal>();
                 signal._frequency = SignalFrequency.Traveler;
                 if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
                     Constants.PlayerSignals.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
-                    Constants.ReversePlayerSignals.Add(Constants.PlayerSignals[playerInfo],  playerInfo);
                 }
 
                 signal._name = Constants.PlayerSignals[playerInfo];
@@ -78,7 +78,6 @@ namespace DiscordProximityChat
         }
 
         public void CleanUpSignal(PlayerInfo playerInfo){
-            Constants.ReversePlayerSignals.Remove(Constants.PlayerSignals[playerInfo]);
             Constants.PlayerSignals.Remove(playerInfo);
             EnumUtils.Remove<SignalName>(playerInfo.Name);
         }

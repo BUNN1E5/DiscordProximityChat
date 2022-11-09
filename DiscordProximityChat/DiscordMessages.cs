@@ -20,8 +20,7 @@ namespace DiscordProximityChat{
         public void ConnectToVoice(){
             DiscordProximityChat.instance.ModHelper.Console.WriteLine("Receieved Lobby ID :: " + Data, MessageType.Success);
             DiscordManager.discord.GetLobbyManager().ConnectLobbyWithActivitySecret(Data,(Result result, ref Lobby lobby) => {
-                if (result == Discord.Result.Ok)
-                {
+                if (result == Discord.Result.Ok){
                     DiscordProximityChat.instance.ModHelper.Console.WriteLine("Connected to lobby " + lobby.Id);
                     DiscordManager.lobbyID = lobby.Id;
                     DiscordManager.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
@@ -33,12 +32,8 @@ namespace DiscordProximityChat{
                     });
                 }
             });
-            
-            
         }
-
     }
-    
     public class DiscordIDMessage : QSBMessage{
 
         private uint networkId;
@@ -66,6 +61,31 @@ namespace DiscordProximityChat{
             if (DiscordManager.PlayerDiscordID.ContainsKey(networkId))
                 return;
             DiscordManager.PlayerDiscordID.Add(networkId, discordID);
+        }
+    }
+    public class DiscordIsTalkingMessage : QSBMessage{
+        private bool isTalking;
+        private long discordID;
+        
+        public DiscordIsTalkingMessage(bool isTalking, long discordID) : base(){
+            this.isTalking = isTalking;
+            this.discordID = discordID;
+        }
+
+        public override void Serialize(NetworkWriter writer){
+            base.Serialize(writer);
+            writer.Write(isTalking);
+            writer.Write(discordID);
+        }
+
+        public override void Deserialize(NetworkReader reader){
+            base.Deserialize(reader);
+            isTalking = reader.Read<bool>();
+            discordID = reader.Read<long>();
+        }
+
+        public override void OnReceiveRemote(){
+            DiscordManager.isSpeaking[discordID] = isTalking;
         }
     }
 }
