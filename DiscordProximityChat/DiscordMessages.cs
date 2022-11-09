@@ -58,7 +58,7 @@ namespace DiscordProximityChat{
 
         public override void OnReceiveRemote(){
             DiscordProximityChat.instance.ModHelper.Console.WriteLine("Recieved QSB Message From " + QSBPlayerManager.GetPlayer(networkId) + " :: " + discordID,MessageType.Success);
-            if (DiscordManager.PlayerDiscordID.ContainsKey(networkId))
+            if (DiscordManager.PlayerDiscordID.Contains(networkId))
                 return;
             DiscordManager.PlayerDiscordID.Add(networkId, discordID);
         }

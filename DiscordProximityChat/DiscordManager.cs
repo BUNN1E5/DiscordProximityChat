@@ -33,7 +33,6 @@ namespace DiscordProximityChat{
             QSBPlayerManager.OnRemovePlayer += RemovePlayer;
 
             discord.GetLobbyManager().OnSpeaking += OnSpeaking;
-
         }
 
         public static void RunCallbacks(){
@@ -134,27 +133,46 @@ namespace DiscordProximityChat{
         }
         public static void DiscordVolumeUpdater(){
             foreach (KeyValuePair<uint, long> playerKV in PlayerDiscordID){ //Explicit cause I'm bad at programming
+
+                if (!QSBPlayerManager.PlayerExists(playerKV.Key))
+                    return;
+
                 PlayerInfo player = QSBPlayerManager.GetPlayer(playerKV.Key);
+
                 if (!player.IsReady)
                     return;
                 
                 if (player == QSBPlayerManager.LocalPlayer)
                     return;
 
-                if (!isSpeaking[playerKV.Value]) //If we aren't speaking don't worry about setting volume
+                if (player.Body == null || QSBPlayerManager.LocalPlayer.Body == null)
+                    return;
+
+                if (isSpeaking.TryGetValue(playerKV.Value, out bool speaking) && !speaking) //This works cause the TryGetValue gets evaluated first
                     return;
 
                 float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
                 float maxDist = 50;
                 int bolume = (byte) Mathf.Clamp(150 * (maxDist - dist) / maxDist, 0, 200);
 
+                if (QSBPlayerManager.LocalPlayer == null){
+                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("LocalPlayer is null, How did we get here?", MessageType.Error);
+                    return;
+                }
+
                 if(QSBPlayerManager.LocalPlayer.SignalscopeEquipped){
-                    foreach (var localSignalscopeStrongestSignal in QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals){
-                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + localSignalscopeStrongestSignal.name + " " + localSignalscopeStrongestSignal._signalVolume, MessageType.Info);
-                        if (Constants.PlayerSignals[localSignalscopeStrongestSignal._name] == player){
-                            bolume = (byte) Mathf.Max(bolume,(int) Mathf.Clamp(150 * localSignalscopeStrongestSignal._signalStrength, 0, 150));
-                            DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + bolume, MessageType.Info);
-                        }
+                    if (QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals == null)
+                        return;
+
+                    if (Constants.PlayerSignals == null){
+                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("PlayerSignals is null, How did we get here?", MessageType.Error);
+                        return;
+                    }
+
+                    foreach (KeyValuePair<PlayerInfo, AudioSignal> playerSignal in Constants.PlayerSignals){
+                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + playerSignal.Key.Name + " " + playerSignal.Value._signalStrength, MessageType.Info);
+                        bolume = (byte) Mathf.Max(bolume,(int) Mathf.Clamp(150 * playerSignal.Value._signalStrength, 0, 150));
+                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + bolume, MessageType.Info);
                     }
                 }
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);

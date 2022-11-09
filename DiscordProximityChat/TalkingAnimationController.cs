@@ -14,6 +14,9 @@ namespace DiscordProximityChat{
             if (playerInfo.Body == null)
                 return;
 
+            if (controllers.ContainsKey(playerInfo.PlayerId))
+                return;
+
             var root = playerInfo.Body.transform.Find(playerInfo.IsLocalPlayer ? "Traveller_HEA_Player_v2" : "REMOTE_Traveller_HEA_Player_v2");
 
             if (root == null)
@@ -31,7 +34,7 @@ namespace DiscordProximityChat{
                 return;
             
             DiscordProximityChat.instance.ModHelper.Console.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
-            
+
             controllers.Add(playerInfo.PlayerId, Create(playerHead, discordId));
         }
         
@@ -47,9 +50,14 @@ namespace DiscordProximityChat{
         public float animationSpeed = 25;
         public float animationAmplitude = 0.005f;
         public long discordID;
-        
+
         private void Update(){
-            if (DiscordManager.isSpeaking[discordID]){
+            if (!DiscordManager.isSpeaking.ContainsKey(discordID)){
+                transform.localScale = Vector3.one;
+                return;
+            }
+
+            if (DiscordManager.isSpeaking[discordID]){  
                 var animationTime = Time.time * animationSpeed;
                 var multiplier = animationSpeed * animationAmplitude;
                 var offset = 1 - animationAmplitude * 0.5f;

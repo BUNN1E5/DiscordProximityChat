@@ -37,15 +37,14 @@ namespace DiscordProximityChat
 
             QSBPlayerManager.OnAddPlayer += SetupPlayer;
             QSBPlayerManager.OnRemovePlayer += CleanUpSignal;
+            
+            InvokeRepeating(nameof(VolumeUpdater), 1, 0.25f);
         }
 
-        public void FixedUpdate(){
-            try{
-                DiscordManager.RunCallbacks();
-                DiscordManager.DiscordVolumeUpdater();
-            } catch(ResultException e) {
-                ModHelper.Console.WriteLine("Cant get CurrentUser : " + e, MessageType.Error);
-            }
+        public void VolumeUpdater(){ DiscordManager.DiscordVolumeUpdater(); }
+
+        public void Update(){
+            DiscordManager.RunCallbacks();
         }
 
         void SetupSignalScopes(OWScene scene, OWScene loadScene){
@@ -56,29 +55,42 @@ namespace DiscordProximityChat
         public void SetupPlayer(PlayerInfo playerInfo)
         {
             ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady, () => {
-                TalkingAnimationManager.SetupTalkingHead(playerInfo); //Setup Talking Heads for Everyone
+                ModHelper.Events.Unity.RunWhen(() => playerInfo.Body != null, () => { //Redundant but it works better ¯\_(ツ)_/¯
+                    if (playerInfo.Body == null){
+                        ModHelper.Console.WriteLine("How did you even get here?", MessageType.Error);
+                        return;
+                    }
 
-                if (playerInfo.IsLocalPlayer)
-                    return;
+                    TalkingAnimationManager.SetupTalkingHead(playerInfo); //Setup Talking Heads for Everyone
 
-                //Everything here is for only the remote players
-                ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
-                AudioSignal signal = playerInfo.Body.AddComponent<AudioSignal>();
-                signal._frequency = SignalFrequency.Traveler;
-                if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
-                    Constants.PlayerSignals.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
-                }
+                    if (playerInfo.IsLocalPlayer)
+                        return;
 
-                signal._name = Constants.PlayerSignals[playerInfo];
+                    //Everything here is for only the remote players
+                    ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
+                    if (!Constants.PlayerSignals.Contains(playerInfo)){
+                        Constants.PlayerSignals.Add(playerInfo, playerInfo.HudMarker.transform.gameObject.AddComponent<AudioSignal>());
+                    }
+                    
+                    AudioSignal signal = Constants.PlayerSignals[playerInfo];
+                    
+                    signal._frequency = SignalFrequency.Traveler;
+                    if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
+                        Constants.PlayerSignalNames.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
+                    }
 
-                PlayerData._currentGameSave.knownSignals[(int)Constants.PlayerSignals[playerInfo]] = true;
-                
-                ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);
+                    signal._name = Constants.PlayerSignalNames[playerInfo];
+
+                    PlayerData._currentGameSave.knownSignals[(int) Constants.PlayerSignalNames[playerInfo]] = true;
+
+                    ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);
+                });
             });
         }
 
         public void CleanUpSignal(PlayerInfo playerInfo){
             Constants.PlayerSignals.Remove(playerInfo);
+            Constants.PlayerSignalNames.Remove(playerInfo);
             EnumUtils.Remove<SignalName>(playerInfo.Name);
         }
     }
