@@ -89,9 +89,17 @@ namespace DiscordProximityChat
         }
 
         public void CleanUpSignal(PlayerInfo playerInfo){
-            Constants.PlayerSignals.Remove(playerInfo);
-            Constants.PlayerSignalNames.Remove(playerInfo);
-            EnumUtils.Remove<SignalName>(playerInfo.Name);
+
+            if (Constants.PlayerSignals.TryGetValue(playerInfo, out AudioSignal signal)){
+                GameObject.DestroyImmediate(signal);
+                Constants.PlayerSignals.Remove(playerInfo);
+            }
+            
+            if( Constants.PlayerSignalNames.Contains(playerInfo))
+                Constants.PlayerSignalNames.Remove(playerInfo);
+            
+            if(EnumUtils.IsDefined<SignalName>(playerInfo.Name))
+                EnumUtils.Remove<SignalName>(playerInfo.Name);
         }
     }
 }
