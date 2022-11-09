@@ -1,28 +1,30 @@
 {
   "enabled": true,
-  "Global Volume" : {
-    "type" : "slider",
-    "min" : 0,
-    "max" : 200,
-    "value" : 200,
-    "tooltip" : "You can also change volume using the Discord overlay"
-  },
-  "Max Audio Distance" : 50,
-  "Audio Falloff Offset (A)" : {
-    "type" : "slider",
-    "min" : 0,
-    "max" : 100,
-    "value" : 3,
-    "tooltip" : "Function: 1 / (x^A + 1)^(B*B)"
-  },
-  "Audio Falloff Power (B)" : {
-    "type" : "slider",
-    "min" : 0,
-    "max" : 10,
-    "value" : 2,
-    "tooltip" : "Function: 1 / (x^A + 1)^(B*B)"
-  },
-  "Mute at Max Dist" : true,
-  "Player Head Bobbing": true,
-  "Scout Speaker": true
+  "settings" : {
+    "Global Volume" : {
+      "type" : "slider",
+      "min" : 0,
+      "max" : 200,
+      "value" : 200,
+      "tooltip" : "You can also change volume using the Discord overlay"
+    },
+    "Max Audio Distance" : 50,
+    "Audio Falloff Offset (A)" : {
+      "type" : "slider",
+      "min" : 0,
+      "max" : 100,
+      "value" : 3,
+      "tooltip" : "Function: 1 / (x^A + 1)^(B*B)"
+    },
+    "Audio Falloff Power (B)" : {
+      "type" : "slider",
+      "min" : 0,
+      "max" : 10,
+      "value" : 2,
+      "tooltip" : "Function: 1 / (x^A + 1)^(B*B)"
+    },
+    "Mute at Max Dist" : true,
+    "Player Head Bobbing": true,
+    "Scout Speaker": true
+  }
 }
