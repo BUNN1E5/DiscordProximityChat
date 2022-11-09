@@ -161,13 +161,13 @@ namespace DiscordProximityChat{
                 
                 bool clip = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Mute at Max Distance");
 
-                float bolume = Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((maxDist - dist) / maxDist, a, b, clip), 0, maxVol);
+                float bolume = Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((dist - maxDist) / maxDist, a, b, clip), 0, maxVol);
 
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){
                     //Probe acts as speaker
                     if (player.ProbeBody != null){
                         float probeDist = (player.ProbeBody.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
-                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((maxDist - dist) / maxDist, a, b, clip), 0, maxVol));
+                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((probeDist - maxDist) / maxDist, a, b, clip), 0, maxVol));
                     }
                 }
 
@@ -186,10 +186,13 @@ namespace DiscordProximityChat{
                     }
 
                     foreach (KeyValuePair<PlayerInfo, AudioSignal> playerSignal in Constants.PlayerSignals){
-                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + playerSignal.Key.Name + " " + playerSignal.Value._signalStrength, MessageType.Info);
+                        //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + playerSignal.Key.Name + " " + playerSignal.Value._signalStrength, MessageType.Info);
                         bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * playerSignal.Value._signalStrength, 0, maxVol));
                     }
                 }
+                
+                DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + player.Name + " : " + bolume + " | " + discord.GetVoiceManager().GetLocalVolume(playerKV.Key), MessageType.Info);
+                
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }
         }

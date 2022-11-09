@@ -10,16 +10,12 @@
     },
     "Max Audio Distance" : 50,
     "Audio Falloff Offset (A)" : {
-      "type" : "slider",
-      "min" : 0,
-      "max" : 100,
+      "type" : "number",
       "value" : 3,
       "tooltip" : "Function: 1 / (x^A + 1)^(B*B)"
     },
     "Audio Falloff Power (B)" : {
-      "type" : "slider",
-      "min" : 0,
-      "max" : 10,
+      "type" : "number",
       "value" : 2,
       "tooltip" : "Function: 1 / (x^A + 1)^(B*B)"
     },

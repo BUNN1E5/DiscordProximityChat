@@ -44,10 +44,19 @@ namespace DiscordProximityChat
             InvokeRepeating(nameof(VolumeUpdater), 1, 0.25f);
         }
 
-        public void VolumeUpdater(){ DiscordManager.DiscordVolumeUpdater(); }
+        public void VolumeUpdater(){
+            DiscordManager.RunCallbacks();
+            DiscordManager.DiscordVolumeUpdater();
+            DiscordManager.discord.GetNetworkManager().Flush();
+        }
 
         public void Update(){
             DiscordManager.RunCallbacks();
+        }
+
+        public void LateUpdate(){
+            DiscordManager.RunCallbacks();
+            DiscordManager.discord.GetNetworkManager().Flush();
         }
 
         void SetupSignalScopes(OWScene scene, OWScene loadScene){
