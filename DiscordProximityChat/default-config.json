@@ -23,7 +23,7 @@
       "value" : 2,
       "tooltip" : "Function: 1 / (x^A + 1)^(B*B)"
     },
-    "Mute at Max Dist" : true,
+    "Mute at Max Distance" : true,
     "Player Head Bobbing": true,
     "Scout Speaker": true
   }

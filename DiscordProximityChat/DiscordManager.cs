@@ -159,7 +159,7 @@ namespace DiscordProximityChat{
                 float maxVol = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Global Volume");
                 
                 
-                bool clip = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Mute at Max Dist");
+                bool clip = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Mute at Max Distance");
 
                 float bolume = Mathf.Clamp(maxVol * Utils.CalculateProximityVolume((maxDist - dist) / maxDist, a, b, clip), 0, maxVol);
 
