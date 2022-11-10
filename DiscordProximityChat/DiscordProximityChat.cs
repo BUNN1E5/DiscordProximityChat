@@ -40,18 +40,11 @@ namespace DiscordProximityChat
 
             QSBPlayerManager.OnAddPlayer += SetupPlayer;
             QSBPlayerManager.OnRemovePlayer += CleanUpSignal;
-            
-            InvokeRepeating(nameof(VolumeUpdater), 1, 0.25f);
-        }
-
-        public void VolumeUpdater(){
-            DiscordManager.RunCallbacks();
-            DiscordManager.DiscordVolumeUpdater();
-            DiscordManager.discord.GetNetworkManager().Flush();
         }
 
         public void Update(){
             DiscordManager.RunCallbacks();
+            DiscordManager.DiscordVolumeUpdater();
         }
 
         public void LateUpdate(){

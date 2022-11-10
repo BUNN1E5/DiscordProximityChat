@@ -53,8 +53,8 @@ using System.Collections.Generic;
 namespace DiscordProximityChat{
 
 	public class BidirectionalDictionary<T1, T2> : IEnumerable{
-		private Dictionary<T1, T2> t1ToT2Dict = new();
-		private Dictionary<T2, T1> t2ToT1Dict = new();
+		public Dictionary<T1, T2> t1ToT2Dict = new();
+		public Dictionary<T2, T1> t2ToT1Dict = new();
 
 		public IEnumerable<T1> FirstTypes => t1ToT2Dict.Keys;
 		public IEnumerable<T2> SecondTypes => t2ToT1Dict.Keys;

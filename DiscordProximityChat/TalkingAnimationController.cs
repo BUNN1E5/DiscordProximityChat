@@ -8,7 +8,7 @@ namespace DiscordProximityChat{
 
     public static class TalkingAnimationManager{
         //Just in case we need to ever actually work with this
-        public static Dictionary<uint, TalkingAnimationController> controllers = new();
+        //public static Dictionary<uint, TalkingAnimationController> controllers = new();
         
         public static void SetupTalkingHead(PlayerInfo playerInfo)
         {
@@ -36,7 +36,7 @@ namespace DiscordProximityChat{
             
             DiscordProximityChat.instance.ModHelper.Console.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
 
-            controllers.Add(playerInfo.PlayerId, Create(playerHead, discordId));
+            Create(playerHead, discordId);
         }
         
         public static TalkingAnimationController Create(Transform transform, long discordId){
