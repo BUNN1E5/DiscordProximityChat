@@ -162,14 +162,14 @@ namespace DiscordProximityChat{
                         bolume = Mathf.Max(bolume,CalcBolume(probeDist));
                     }
                 }
-
+                
                 if (QSBPlayerManager.LocalPlayer == null){
                     DiscordProximityChat.instance.ModHelper.Console.WriteLine("LocalPlayer is null, How did we get here?", MessageType.Error);
                     continue;
                 }
 
-                //Signal Scope Code
-                
+                #region SignalScope
+
                 if(QSBPlayerManager.LocalPlayer.SignalscopeEquipped){
                     if (QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals == null)
                         continue;
@@ -179,13 +179,12 @@ namespace DiscordProximityChat{
                         continue;
                     }
 
-                    foreach (KeyValuePair<PlayerInfo, AudioSignal> playerSignal in Constants.PlayerSignals){
-                        //DiscordProximityChat.instance.ModHelper.Console.WriteLine("Signal for " + playerSignal.Key.Name + " " + playerSignal.Value._signalStrength, MessageType.Info);
-                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol * playerSignal.Value._signalStrength, 0, maxVol));
+                    if (Constants.PlayerSignals.TryGetValue(player, out AudioSignal signal)){
+                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol *  signal._signalStrength, 0, maxVol));
                     }
                 }
                 
-                //End Signal Scope Code
+                #endregion
                 
                 DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + player.Name + " : " + bolume + " | " + discord.GetVoiceManager().GetLocalVolume(playerKV.Key), MessageType.Info);
                 
