@@ -80,7 +80,7 @@ namespace DiscordProximityChat
                 AudioSignal signal = playerInfo.HudMarker.transform.gameObject.AddComponent<AudioSignal>();
                 Constants.PlayerSignals.Add(playerInfo, signal);
 
-                signal._frequency = SignalFrequency.Radio;
+                signal._frequency = SignalFrequency.Traveler;
                 if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
                     Constants.PlayerSignalNames.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
                 }
