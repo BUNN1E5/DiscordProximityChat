@@ -36,13 +36,15 @@ namespace DiscordProximityChat{
             
             DiscordProximityChat.instance.ModHelper.Console.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
 
-            Create(playerHead, discordId);
+            Create(playerHead, playerInfo, discordId);
         }
         
-        public static TalkingAnimationController Create(Transform transform, long discordId){
+        public static TalkingAnimationController Create(Transform transform, PlayerInfo info, long discordId){
             var existingComponent = transform.GetComponent<TalkingAnimationController>();
             existingComponent = existingComponent != null ? existingComponent : transform.gameObject.AddComponent<TalkingAnimationController>();
             existingComponent.discordID = discordId;
+            existingComponent.HUDMarker = info.HudMarker;
+            existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>();
             return existingComponent;
         }
     }
@@ -51,6 +53,9 @@ namespace DiscordProximityChat{
         public float animationSpeed = 25;
         public float animationAmplitude = 0.005f;
         public long discordID;
+
+        public PlayerHUDMarker HUDMarker;
+        public PlayerMapMarker MapMarker;
 
         private void Update(){
             if (!DiscordManager.isSpeaking.ContainsKey(discordID)){

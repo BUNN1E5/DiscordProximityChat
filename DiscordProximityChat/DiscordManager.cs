@@ -19,15 +19,15 @@ namespace DiscordProximityChat{
         public static Discord.Discord discord;
 
         public static void Init(){
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Initializing Discord API");
+            Utils.WriteLine("Initializing Discord API");
             //discord = new Discord.Discord(clientID, (long) Discord.CreateFlags.NoRequireDiscord);
             discord = new Discord.Discord(Constants.clientID, (UInt64) Discord.CreateFlags.Default);
 
             discord.SetLogHook(Discord.LogLevel.Debug, LogProblems);
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord API Initialized", MessageType.Success);
+            Utils.WriteLine("Discord API Initialized", MessageType.Success);
             discord.RunCallbacks(); //Run the callbacks at least once to try and get the UserID
 
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("UserID :: " + GetUserID(), MessageType.Success);
+            Utils.WriteLine("UserID :: " + GetUserID(), MessageType.Success);
 
             QSBPlayerManager.OnAddPlayer += OnQSBAddPlayer;
             QSBPlayerManager.OnRemovePlayer += RemovePlayer;
@@ -39,7 +39,7 @@ namespace DiscordProximityChat{
             try{
                 discord.RunCallbacks();
             } catch (Discord.ResultException e){
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord::" + e.Result, MessageType.Error);
+                Utils.WriteLine("Discord::" + e.Result, MessageType.Error);
             }
         }
 
@@ -48,7 +48,7 @@ namespace DiscordProximityChat{
         }
 
         static void LogProblems(Discord.LogLevel level, string message){
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord:" + level + " - " + message,MessageType.Error);
+            Utils.WriteLine("Discord:" + level + " - " + message,MessageType.Error);
         }
 
         static long GetUserID(){
@@ -56,7 +56,7 @@ namespace DiscordProximityChat{
             try{
                 id = discord.GetUserManager().GetCurrentUser().Id;
             } catch (ResultException e) {
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Discord::" + e.Result, MessageType.Error);
+                Utils.WriteLine("Discord::" + e.Result, MessageType.Error);
                 discord.RunCallbacks();
                 return GetUserID();
             }
@@ -72,13 +72,13 @@ namespace DiscordProximityChat{
                     return;
                 }
                 
-                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Sending QSB Message to " + info + " :: " + discordUserID + ")", MessageType.Info);
+                Utils.WriteLine("Sending QSB Message to " + info + " :: " + discordUserID + ")", MessageType.Info);
                 new DiscordIDMessage(QSBPlayerManager.LocalPlayerId, discordUserID){To = info.PlayerId}.Send();
             });
         }
 
         static void CreateDiscordLobby(){
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Creating discord Lobby", MessageType.Info);
+            Utils.WriteLine("Creating discord Lobby", MessageType.Info);
             //If we are the host create a discord lobby
             var txn = discord.GetLobbyManager().GetLobbyCreateTransaction();
             txn.SetCapacity((uint)QSBNetworkManager.singleton.maxConnections);
@@ -88,16 +88,16 @@ namespace DiscordProximityChat{
                 try{
                     if (result == Discord.Result.Ok){
                         lobbySecret = discord.GetLobbyManager().GetLobbyActivitySecret(lobby.Id);
-                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("Created lobby " + lobby.Id, MessageType.Success);
+                        Utils.WriteLine("Created lobby " + lobby.Id, MessageType.Success);
                         
                         DiscordManager.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) => {
                             if (result == Discord.Result.Ok){
-                                DiscordProximityChat.instance.ModHelper.Console.WriteLine("Voice connected!");
+                                Utils.WriteLine("Voice connected!");
                             }
                         });
                     }
                 }catch(ResultException e){
-                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("Failed to create Lobby! Trying Again", MessageType.Error);
+                    Utils.WriteLine("Failed to create Lobby! Trying Again", MessageType.Error);
                     CreateDiscordLobby();
                 }
             });
@@ -110,7 +110,7 @@ namespace DiscordProximityChat{
                 discord.RunCallbacks(); //Cause Why not
                 
                 DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => lobbySecret != null, () => {
-                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("Sending Lobby Secret to " + info + " :: " + lobbySecret + ")", MessageType.Info);
+                    Utils.WriteLine("Sending Lobby Secret to " + info + " :: " + lobbySecret + ")", MessageType.Info);
                     new DiscordLobbyMessage(lobbySecret){To = info.PlayerId}.Send();
                 });
             }
@@ -132,6 +132,7 @@ namespace DiscordProximityChat{
 
         }
         public static void DiscordVolumeUpdater(){
+            float maxVol = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Global Volume");
             foreach (KeyValuePair<uint, long> playerKV in PlayerDiscordID){ //Explicit cause I'm bad at programming
                 if (!QSBPlayerManager.PlayerExists(playerKV.Key))
                     continue;
@@ -143,16 +144,20 @@ namespace DiscordProximityChat{
 
                 if (player.IsLocalPlayer)
                     continue;
+                
+                if (isSpeaking.TryGetValue(playerKV.Value, out bool speaking) && !speaking) //This works cause the TryGetValue gets evaluated first
+                    continue;
+
+                //Are we dead and is the other person dead?
+                if (QSBPlayerManager.LocalPlayer.IsDead && player.IsDead){
+                    discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)maxVol);
+                    continue;
+                }
 
                 if (player.Body == null || QSBPlayerManager.LocalPlayer.Body == null)
                     continue;
 
-                if (isSpeaking.TryGetValue(playerKV.Value, out bool speaking) && !speaking) //This works cause the TryGetValue gets evaluated first
-                    continue;
-
                 float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
-                float maxVol = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Global Volume");
-                
                 float bolume = CalcBolume(dist);
 
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){
@@ -164,7 +169,7 @@ namespace DiscordProximityChat{
                 }
                 
                 if (QSBPlayerManager.LocalPlayer == null){
-                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("LocalPlayer is null, How did we get here?", MessageType.Error);
+                    Utils.WriteLine("LocalPlayer is null, How did we get here?", MessageType.Error);
                     continue;
                 }
 
@@ -175,7 +180,7 @@ namespace DiscordProximityChat{
                         continue;
 
                     if (Constants.PlayerSignals == null){
-                        DiscordProximityChat.instance.ModHelper.Console.WriteLine("PlayerSignals is null, How did we get here?", MessageType.Error);
+                        Utils.WriteLine("PlayerSignals is null, How did we get here?", MessageType.Error);
                         continue;
                     }
 
@@ -186,7 +191,7 @@ namespace DiscordProximityChat{
                 
                 #endregion
                 
-                //DiscordProximityChat.instance.ModHelper.Console.WriteLine("bolume for " + player.Name + " : " + bolume + " | " + discord.GetVoiceManager().GetLocalVolume(playerKV.Key), MessageType.Info);
+                //Utils.WriteLine("bolume for " + player.Name + " : " + bolume + " | " + discord.GetVoiceManager().GetLocalVolume(playerKV.Key), MessageType.Info);
                 
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }
