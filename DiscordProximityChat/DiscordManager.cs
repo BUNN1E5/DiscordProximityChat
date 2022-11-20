@@ -191,7 +191,8 @@ namespace DiscordProximityChat{
                 
                 #endregion
                 
-                //Utils.WriteLine("bolume for " + player.Name + " : " + bolume + " | " + discord.GetVoiceManager().GetLocalVolume(playerKV.Key), MessageType.Info);
+                if(DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Debug Mode"))
+                    Utils.WriteLine("bolume for " + player.Name + " : " + bolume + " | " + discord.GetVoiceManager().GetLocalVolume(playerKV.Key), MessageType.Info);
                 
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
             }

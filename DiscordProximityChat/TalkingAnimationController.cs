@@ -57,6 +57,12 @@ namespace DiscordProximityChat{
         public PlayerHUDMarker HUDMarker;
         public PlayerMapMarker MapMarker;
 
+        private Material HUDMarkerMat;
+
+        private void Start(){
+            HUDMarkerMat = HUDMarker.GetComponent<Material>();
+        }
+
         private void Update(){
             if (!DiscordManager.isSpeaking.ContainsKey(discordID)){
                 transform.localScale = Vector3.one;
@@ -74,9 +80,13 @@ namespace DiscordProximityChat{
                 var x = Mathf.Sin(animationTime) * multiplier + offset;
                 var z = Mathf.Cos(animationTime) * multiplier + offset;
                 transform.localScale = new Vector3(x, 1, z);
+                //TODO :: CHANGE TO COLOR
+                HUDMarker.transform.localScale = new Vector3(x, z, 0);
+                MapMarker.transform.localScale = new Vector3(x, z, 0);
             }
             else{
                 transform.localScale = Vector3.one;
+                HUDMarker.transform.localScale = Vector3.one;
             }
         }
     }

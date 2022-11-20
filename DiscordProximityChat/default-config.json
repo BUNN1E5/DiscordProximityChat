@@ -21,6 +21,7 @@
     },
     "Mute at Max Distance" : true,
     "Player Head Bobbing": true,
-    "Scout Speaker": true
+    "Scout Speaker": true,
+    "Debug Mode": false
   }
 }
