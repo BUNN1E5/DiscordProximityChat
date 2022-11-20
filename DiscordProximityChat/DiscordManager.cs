@@ -161,13 +161,20 @@ namespace DiscordProximityChat{
                 if (player.Camera == null || QSBPlayerManager.LocalPlayer.Camera == null)
                     continue;
 
-                float dist = (player.Camera.transform.position - Camera.current.transform.position).magnitude;
+                float camDist = (player.Camera.transform.position - Camera.current.transform.position).magnitude;
+                float playerDist = (player.Camera.transform.position - QSBPlayerManager.LocalPlayer.Camera.transform.position).magnitude;
+                float dist = Mathf.Max(camDist, playerDist);
+                
                 float bolume = CalcBolume(dist);
 
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){
                     //Probe acts as speaker
                     if (player.ProbeBody != null){
-                        float probeDist = (player.ProbeBody.transform.position - QSBPlayerManager.LocalPlayer.Camera.transform.position).magnitude;
+                        float probeCamDist = (player.ProbeBody.transform.position - Camera.current.transform.position).magnitude;
+                        float probePlayerDis = (player.ProbeBody.transform.position - QSBPlayerManager.LocalPlayer.Camera.transform.position).magnitude;
+
+                        float probeDist = Mathf.Max(probeCamDist, probePlayerDis);
+                        
                         bolume = Mathf.Max(bolume,CalcBolume(probeDist));
                     }
                 }

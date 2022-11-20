@@ -60,8 +60,8 @@ namespace DiscordProximityChat
 
         public void SetupPlayer(PlayerInfo playerInfo)
         {
-            ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady && playerInfo.Body != null, () => {
-                if (playerInfo.Body == null){
+            ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady && playerInfo.Camera != null, () => {
+                if (playerInfo.Camera == null){
                     ModHelper.Console.WriteLine("How did you even get here?", MessageType.Error);
                     return;
                 }
@@ -77,7 +77,7 @@ namespace DiscordProximityChat
                 //There is a check in the Bidirectional Dictionary
                 Constants.PlayerSignals.Remove(playerInfo);
                 
-                AudioSignal signal = playerInfo.HudMarker.transform.gameObject.AddComponent<AudioSignal>();
+                AudioSignal signal = playerInfo.Camera.transform.gameObject.AddComponent<AudioSignal>();
                 Constants.PlayerSignals.Add(playerInfo, signal);
 
                 signal._frequency = SignalFrequency.Traveler;
