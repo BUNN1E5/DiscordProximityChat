@@ -44,8 +44,12 @@ namespace DiscordProximityChat{
             existingComponent = existingComponent != null ? existingComponent : transform.gameObject.AddComponent<TalkingAnimationController>();
             existingComponent.discordID = discordId;
             if (!info.IsLocalPlayer){
-                existingComponent.HUDMarker = info.HudMarker;
-                existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>();
+                DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => existingComponent.HUDMarker != null,() => {
+                    existingComponent.HUDMarker = info.HudMarker; //Silly But Doesn't seem to work otherwise
+                });
+                DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => existingComponent.HUDMarker != null,() => {
+                    existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>();
+                });
             }
             return existingComponent;
         }
@@ -63,10 +67,13 @@ namespace DiscordProximityChat{
         public PlayerMapMarker MapMarker;
 
         private void Start(){
-            if (HUDMarker == null){
-                OnScreenMarker = HUDMarker._canvasMarker._marker;
-                OffScreenMarker = HUDMarker._canvasMarker._offScreenIndicator.GetComponent<MeshRenderer>();
-            }
+            
+        }
+
+        public void SetHUDMarker(PlayerHUDMarker hudMarker){
+            this.HUDMarker = hudMarker;
+            OnScreenMarker = HUDMarker._canvasMarker._marker;
+            OffScreenMarker = HUDMarker._canvasMarker._offScreenIndicator.GetComponent<MeshRenderer>();
         }
 
         private void Update(){
@@ -79,10 +86,10 @@ namespace DiscordProximityChat{
                 var animationTime = Time.time * animationSpeed;
                 var multiplier = animationSpeed * animationAmplitude;
                 var offset = 1 - animationAmplitude * 0.5f;
-                var x = Mathf.Sin(animationTime) * multiplier + offset;
-                var z = Mathf.Cos(animationTime) * multiplier + offset;
+                var x = Mathf.Sin(animationTime) ;
+                var z = Mathf.Cos(animationTime);
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player Head Bobbing")){
-                    transform.localScale = new Vector3(x, 1, z);
+                    transform.localScale = new Vector3(x * multiplier + offset, 1, z * multiplier + offset);
                 }
 
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player HUD Icon Bobbing")){
