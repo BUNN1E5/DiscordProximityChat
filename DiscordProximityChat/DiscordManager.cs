@@ -153,11 +153,15 @@ namespace DiscordProximityChat{
                     discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)maxVol);
                     continue;
                 }
+                else if(!QSBPlayerManager.LocalPlayer.IsDead && player.IsDead){
+                    discord.GetVoiceManager().SetLocalVolume(playerKV.Value, 0);
+                    continue;
+                }
 
                 if (player.Camera == null || QSBPlayerManager.LocalPlayer.Camera == null)
                     continue;
 
-                float dist = (player.Camera.transform.position - QSBPlayerManager.LocalPlayer.Camera.transform.position).magnitude;
+                float dist = (player.Camera.transform.position - Camera.current.transform.position).magnitude;
                 float bolume = CalcBolume(dist);
 
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){

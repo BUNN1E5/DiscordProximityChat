@@ -43,8 +43,10 @@ namespace DiscordProximityChat{
             var existingComponent = transform.GetComponent<TalkingAnimationController>();
             existingComponent = existingComponent != null ? existingComponent : transform.gameObject.AddComponent<TalkingAnimationController>();
             existingComponent.discordID = discordId;
-            existingComponent.HUDMarker = info.HudMarker;
-            existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>();
+            if (!info.IsLocalPlayer){
+                existingComponent.HUDMarker = info.HudMarker;
+                existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>();
+            }
             return existingComponent;
         }
     }
@@ -55,12 +57,16 @@ namespace DiscordProximityChat{
         public long discordID;
 
         public PlayerHUDMarker HUDMarker;
+        private MeshRenderer OnScreenMarker;
+        private MeshRenderer OffScreenMarker;
+        
         public PlayerMapMarker MapMarker;
 
-        private Material HUDMarkerMat;
-
         private void Start(){
-            HUDMarkerMat = HUDMarker.GetComponent<Material>();
+            if (HUDMarker == null){
+                OnScreenMarker = HUDMarker._canvasMarker._marker;
+                OffScreenMarker = HUDMarker._canvasMarker._offScreenIndicator.GetComponent<MeshRenderer>();
+            }
         }
 
         private void Update(){
@@ -68,25 +74,40 @@ namespace DiscordProximityChat{
                 transform.localScale = Vector3.one;
                 return;
             }
-
-            if (!DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player Head Bobbing")){
-                return;
-            }
-
-            if (DiscordManager.isSpeaking[discordID]){  
+            
+            if (DiscordManager.isSpeaking[discordID]){
                 var animationTime = Time.time * animationSpeed;
                 var multiplier = animationSpeed * animationAmplitude;
                 var offset = 1 - animationAmplitude * 0.5f;
                 var x = Mathf.Sin(animationTime) * multiplier + offset;
                 var z = Mathf.Cos(animationTime) * multiplier + offset;
-                transform.localScale = new Vector3(x, 1, z);
-                //TODO :: CHANGE TO COLOR
-                HUDMarker.transform.localScale = new Vector3(x, z, 0);
-                MapMarker.transform.localScale = new Vector3(x, z, 0);
-            }
-            else{
+                if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player Head Bobbing")){
+                    transform.localScale = new Vector3(x, 1, z);
+                }
+
+                if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player HUD Icon Bobbing")){
+                    if (OnScreenMarker != null){
+                        OnScreenMarker.transform.localScale = new Vector3(x, 1, z);
+                        OnScreenMarker.material.color = new Color(0, x, 0);
+                    }
+
+                    if (OffScreenMarker != null){
+                        OffScreenMarker.transform.localScale = new Vector3(x, 1, z);
+                        OffScreenMarker.material.color = new Color(0, x, 0);
+                    }
+                }
+            } else {
                 transform.localScale = Vector3.one;
-                HUDMarker.transform.localScale = Vector3.one;
+                
+                if (OnScreenMarker != null){
+                    OnScreenMarker.transform.localScale = Vector3.one;
+                    OnScreenMarker.material.color = new Color(1, 1, 1, 1);
+                }
+                
+                if (OffScreenMarker != null){
+                    OffScreenMarker.transform.localScale = Vector3.one;
+                    OffScreenMarker.material.color = new Color(1, 1, 1, 1);
+                }
             }
         }
     }
