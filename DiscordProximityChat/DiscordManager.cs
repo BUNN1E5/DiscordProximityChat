@@ -154,16 +154,16 @@ namespace DiscordProximityChat{
                     continue;
                 }
 
-                if (player.Body == null || QSBPlayerManager.LocalPlayer.Body == null)
+                if (player.Camera == null || QSBPlayerManager.LocalPlayer.Camera == null)
                     continue;
 
-                float dist = (player.Body.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
+                float dist = (player.Camera.transform.position - QSBPlayerManager.LocalPlayer.Camera.transform.position).magnitude;
                 float bolume = CalcBolume(dist);
 
                 if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){
                     //Probe acts as speaker
                     if (player.ProbeBody != null){
-                        float probeDist = (player.ProbeBody.transform.position - QSBPlayerManager.LocalPlayer.Body.transform.position).magnitude;
+                        float probeDist = (player.ProbeBody.transform.position - QSBPlayerManager.LocalPlayer.Camera.transform.position).magnitude;
                         bolume = Mathf.Max(bolume,CalcBolume(probeDist));
                     }
                 }
