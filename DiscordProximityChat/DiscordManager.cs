@@ -64,7 +64,7 @@ namespace DiscordProximityChat{
         }
 
         static void OnQSBAddPlayer(PlayerInfo info){
-            DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => PlayerTransformSync.LocalInstance, () => {
+            Utils.RunWhen(() => PlayerTransformSync.LocalInstance, () => {
                 SendLobbyMessage(info);
                 var discordUserID = GetUserID();
                 if (info.IsLocalPlayer){
@@ -109,7 +109,7 @@ namespace DiscordProximityChat{
                     CreateDiscordLobby();
                 discord.RunCallbacks(); //Cause Why not
                 
-                DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => lobbySecret != null, () => {
+                Utils.RunWhen(() => lobbySecret != null, () => {
                     Utils.WriteLine("Sending Lobby Secret to " + info + " :: " + lobbySecret + ")", MessageType.Info);
                     new DiscordLobbyMessage(lobbySecret){To = info.PlayerId}.Send();
                 });

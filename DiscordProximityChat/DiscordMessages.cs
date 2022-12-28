@@ -18,16 +18,16 @@ namespace DiscordProximityChat{
         }
 
         public void ConnectToVoice(){
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Receieved Lobby ID :: " + Data, MessageType.Success);
+            Utils.WriteLine("Receieved Lobby ID :: " + Data, MessageType.Success);
             DiscordManager.discord.GetLobbyManager().ConnectLobbyWithActivitySecret(Data,(Result result, ref Lobby lobby) => {
                 if (result == Discord.Result.Ok){
-                    DiscordProximityChat.instance.ModHelper.Console.WriteLine("Connected to lobby " + lobby.Id);
+                    Utils.WriteLine("Connected to lobby " + lobby.Id);
                     DiscordManager.lobbyID = lobby.Id;
                     DiscordManager.discord.GetLobbyManager().ConnectVoice(lobby.Id, (result) =>
                     {
                         if (result == Discord.Result.Ok)
                         {
-                            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Voice connected!");
+                            Utils.WriteLine("Voice connected!");
                         }
                     });
                 }
@@ -57,7 +57,7 @@ namespace DiscordProximityChat{
         }
 
         public override void OnReceiveRemote(){
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine("Recieved QSB Message From " + QSBPlayerManager.GetPlayer(networkId) + " :: " + discordID,MessageType.Success);
+            Utils.WriteLine("Recieved QSB Message From " + QSBPlayerManager.GetPlayer(networkId) + " :: " + discordID,MessageType.Success);
             if (DiscordManager.PlayerDiscordID.Contains(networkId))
                 return;
             DiscordManager.PlayerDiscordID.Add(networkId, discordID);
