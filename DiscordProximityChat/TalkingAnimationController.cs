@@ -23,6 +23,7 @@ namespace DiscordProximityChat{
             if (root == null)
                 return;
             
+            //TODO :: Find equivalent for OWO
             var playerHead = root.Find(
                 "Traveller_Rig_v01:Traveller_Trajectory_Jnt/Traveller_Rig_v01:Traveller_ROOT_Jnt/Traveller_Rig_v01:Traveller_Spine_01_Jnt/Traveller_Rig_v01:Traveller_Spine_02_Jnt/Traveller_Rig_v01:Traveller_Spine_Top_Jnt/Traveller_Rig_v01:Traveller_Neck_01_Jnt/Traveller_Rig_v01:Traveller_Neck_Top_Jnt");
 
@@ -48,7 +49,7 @@ namespace DiscordProximityChat{
                     existingComponent.HUDMarker = info.HudMarker; //Silly But Doesn't seem to work otherwise
                 });
                 Utils.RunWhen(() => existingComponent.HUDMarker != null,() => {
-                    existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>();
+                    existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>(); 
                 });
             }
             return existingComponent;
@@ -60,7 +61,7 @@ namespace DiscordProximityChat{
         public float animationAmplitude = 0.005f;
         public long discordID;
 
-        public PlayerHUDMarker HUDMarker;
+        public PlayerHUDMarker HUDMarker; //TODO :: ADD OWO SUPPORT
         private MeshRenderer OnScreenMarker;
         private MeshRenderer OffScreenMarker;
         

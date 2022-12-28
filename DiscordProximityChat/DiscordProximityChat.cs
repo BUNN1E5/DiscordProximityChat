@@ -23,23 +23,17 @@ namespace DiscordProximityChat
             instance = this;
             ModHelper.Console.WriteLine($"{nameof(DiscordProximityChat)} is loaded!", MessageType.Success);
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-
-            //Thanks to QSB I dont need to make this file lmao
-            //IMenuAPI menuAPI = ModHelper.Interaction.TryGetModApi<IMenuAPI>("_nebula.MenuFramework");
-
-            //TODO :: ADD A VOLUME SLIDER
-
-            //We do this to setup the Discord Manager for the first time
-            //Use instance otherwise
+            
             DiscordManager.Init();
-
+            
             LoadManager.OnCompleteSceneLoad += (scene, loadScene) => {
-                ModHelper.Events.Unity.RunWhen(() => QSBWorldSync.AllObjectsReady, () => {
+                Utils.RunWhen(() => QSBWorldSync.AllObjectsReady, () => {
                     SetupSignalScopes(scene, loadScene);
                 });
             };
 
-            QSBPlayerManager.OnAddPlayer += SetupPlayer;
+            //TODO :: ADD OWO SUPPORT
+            QSBPlayerManager.OnAddPlayer += SetupPlayer; //Change to 
             QSBPlayerManager.OnRemovePlayer += CleanUpSignal;
         }
 
@@ -60,9 +54,9 @@ namespace DiscordProximityChat
 
         public void SetupPlayer(PlayerInfo playerInfo)
         {
-            ModHelper.Events.Unity.RunWhen(() => playerInfo.IsReady && playerInfo.Camera != null, () => {
+            Utils.RunWhen(() => playerInfo.IsReady && playerInfo.Camera != null, () => {
                 if (playerInfo.Camera == null){
-                    ModHelper.Console.WriteLine("How did you even get here?", MessageType.Error);
+                    Utils.WriteLine("How did you even get here?", MessageType.Error);
                     return;
                 }
 
@@ -89,12 +83,11 @@ namespace DiscordProximityChat
 
                 PlayerData._currentGameSave.knownSignals[(int) Constants.PlayerSignalNames[playerInfo]] = true;
 
-                ModHelper.Console.WriteLine("Add the known signal for the local player", MessageType.Success);
+                Utils.WriteLine("Add the known signal for the local player", MessageType.Success);
             });
         }
 
         public void CleanUpSignal(PlayerInfo playerInfo){
-            
             if (Constants.PlayerSignals.TryGetValue(playerInfo, out AudioSignal signal)){
                 GameObject.DestroyImmediate(signal);
                 Constants.PlayerSignals.Remove(playerInfo);
