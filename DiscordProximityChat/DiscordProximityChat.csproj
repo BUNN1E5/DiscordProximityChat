@@ -27,13 +27,14 @@
     <Content Include="DiscordProximityChat.csproj.user" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="QSB">
-      <HintPath>..\..\..\Games\steam\steamapps\compatdata\3041664960\pfx\drive_c\users\steamuser\AppData\Roaming\OuterWildsModManager\OWML\Mods\Raicuparta.QuantumSpaceBuddies\QSB.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Mirror">
-      <HintPath>..\..\..\Games\steam\steamapps\compatdata\3041664960\pfx\drive_c\users\steamuser\AppData\Roaming\OuterWildsModManager\OWML\Mods\Raicuparta.QuantumSpaceBuddies\Mirror.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\lib\Mirror.dll</HintPath>
+    </Reference>
+    <Reference Include="OuterWildsMMO">
+      <HintPath>..\lib\OuterWildsMMO.dll</HintPath>
+    </Reference>
+    <Reference Include="QSB">
+      <HintPath>..\lib\QSB.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

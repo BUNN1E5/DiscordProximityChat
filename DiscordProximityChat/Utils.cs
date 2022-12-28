@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using OWML.Common;
@@ -24,6 +25,19 @@ namespace DiscordProximityChat{
         
         public static void WriteLine(string line){
             DiscordProximityChat.instance.ModHelper.Console.WriteLine(line);
+        }
+        
+        public static Coroutine RunWhen(Func<bool> predicate, Action action, Coroutine c){
+            DiscordProximityChat.instance.StopCoroutine(c);
+            return RunWhen(predicate, action);
+        }
+
+        public static Coroutine RunWhen(Func<bool> predicate, Action action) => 
+            DiscordProximityChat.instance.StartCoroutine(WaitUntil(predicate, action));
+
+        private static IEnumerator WaitUntil(Func<bool> predicate, Action action){
+            yield return new WaitUntil(predicate);
+            action();
         }
     }
 }

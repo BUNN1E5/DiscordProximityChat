@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using OWML.ModHelper;
 using QSB.Player;
@@ -34,7 +34,7 @@ namespace DiscordProximityChat{
             if (discordId == default)
                 return;
             
-            DiscordProximityChat.instance.ModHelper.Console.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
+            Utils.WriteLine($"Everything seems OK {(playerInfo.IsLocalPlayer ? "local" : "remote")}");
 
             Create(playerHead, playerInfo, discordId);
         }
@@ -44,10 +44,10 @@ namespace DiscordProximityChat{
             existingComponent = existingComponent != null ? existingComponent : transform.gameObject.AddComponent<TalkingAnimationController>();
             existingComponent.discordID = discordId;
             if (!info.IsLocalPlayer){
-                DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => existingComponent.HUDMarker != null,() => {
+                Utils.RunWhen(() => existingComponent.HUDMarker != null,() => {
                     existingComponent.HUDMarker = info.HudMarker; //Silly But Doesn't seem to work otherwise
                 });
-                DiscordProximityChat.instance.ModHelper.Events.Unity.RunWhen(() => existingComponent.HUDMarker != null,() => {
+                Utils.RunWhen(() => existingComponent.HUDMarker != null,() => {
                     existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>();
                 });
             }
