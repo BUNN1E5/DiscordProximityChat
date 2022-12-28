@@ -8,6 +8,7 @@ using UnityEngine;
 namespace DiscordProximityChat{
     public class Utils{
 
+        public static IModConfig Config = DiscordProximityChat.instance.ModHelper.Config;
         public static float CalculateProximityVolume(float x, float a, float b){
             //Function is 1/(x^a + 1)^(b*b)
             return 1/Mathf.Pow(Mathf.Pow(x, a) + 1, b*b);

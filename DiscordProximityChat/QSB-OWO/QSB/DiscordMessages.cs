@@ -63,6 +63,33 @@ namespace DiscordProximityChat{
             DiscordManager.PlayerDiscordID.Add(networkId, discordID);
         }
     }
+
+    public class SharedSettingsMessage : QSBMessage{
+        private bool bidirectionalSignalscope;
+        private long discordID;
+        
+        public SharedSettingsMessage(IModConfig config, long discordID) : base(){
+            this.bidirectionalSignalscope = config.GetSettingsValue<bool>("Bidirectional Signalscope");
+            this.discordID = discordID;
+        }
+        
+        public override void Serialize(NetworkWriter writer){
+            base.Serialize(writer);
+            writer.Write(bidirectionalSignalscope);
+            writer.Write(discordID);
+        }
+
+        public override void Deserialize(NetworkReader reader){
+            base.Deserialize(reader);
+            bidirectionalSignalscope = reader.Read<bool>();
+            discordID = reader.Read<long>();
+        }
+        
+        public override void OnReceiveRemote(){
+            DiscordManager.sharedSettings[discordID].BidirectionalSignalscope = bidirectionalSignalscope;
+        }
+    }
+
     public class DiscordIsTalkingMessage : QSBMessage{
         private bool isTalking;
         private long discordID;

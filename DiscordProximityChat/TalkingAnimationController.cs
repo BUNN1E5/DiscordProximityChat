@@ -89,11 +89,11 @@ namespace DiscordProximityChat{
                 var offset = 1 - animationAmplitude * 0.5f;
                 var x = Mathf.Sin(animationTime) ;
                 var z = Mathf.Cos(animationTime);
-                if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player Head Bobbing")){
+                if (Utils.Config.GetSettingsValue<bool>("Player Head Bobbing")){
                     transform.localScale = new Vector3(x * multiplier + offset, 1, z * multiplier + offset);
                 }
 
-                if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Player HUD Icon Bobbing")){
+                if (Utils.Config.GetSettingsValue<bool>("Player HUD Icon Bobbing")){
                     if (OnScreenMarker != null){
                         OnScreenMarker.transform.localScale = new Vector3(x, 1, z);
                         OnScreenMarker.material.color = new Color(0, x, 0);

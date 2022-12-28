@@ -23,6 +23,7 @@
     "Player Head Bobbing": true,
     "Player HUD Icon Bobbing": true,
     "Scout Speaker": true,
+    "Bidirectional Signalscope": false,
     "Debug Mode": false
   }
 }

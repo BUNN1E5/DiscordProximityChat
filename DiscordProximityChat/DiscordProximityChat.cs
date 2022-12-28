@@ -47,6 +47,13 @@ namespace DiscordProximityChat
             DiscordManager.discord.GetNetworkManager().Flush();
         }
 
+        public override void Configure(IModConfig config){
+            base.Configure(config);
+            if (DiscordManager.lobbyID == 0)
+                return;
+            new SharedSettingsMessage(config, DiscordManager.GetUserID());
+        }
+
         void SetupSignalScopes(OWScene scene, OWScene loadScene){
             if (!loadScene.IsUniverseScene()) return;
             QSBPlayerManager.PlayerList.ForEach(SetupPlayer);
@@ -62,9 +69,13 @@ namespace DiscordProximityChat
 
                 TalkingAnimationManager.SetupTalkingHead(playerInfo); //Setup Talking Heads for Everyone
 
+                if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
+                    Constants.PlayerSignalNames.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
+                }
+                
                 if (playerInfo.IsLocalPlayer)
                     return;
-
+                
                 //Everything here is for only the remote players
                 ModHelper.Console.WriteLine("Adding Audio Signal", MessageType.Success);
                 
@@ -75,9 +86,7 @@ namespace DiscordProximityChat
                 Constants.PlayerSignals.Add(playerInfo, signal);
 
                 signal._frequency = SignalFrequency.Traveler;
-                if (!EnumUtils.IsDefined<SignalName>(playerInfo.Name)){
-                    Constants.PlayerSignalNames.Add(playerInfo, EnumUtils.Create<SignalName>(playerInfo.Name));
-                }
+                
                 
                 signal._name = Constants.PlayerSignalNames[playerInfo];
 

@@ -13,6 +13,8 @@ namespace DiscordProximityChat{
 
         public static readonly BidirectionalDictionary<uint, long> PlayerDiscordID = new();
         public static readonly Dictionary<long, bool> isSpeaking = new();
+        public static readonly Dictionary<long, SharedSettings> sharedSettings = new();
+
 
         public static long lobbyID;
         private static string lobbySecret; //Only the host uses this variable
@@ -51,7 +53,7 @@ namespace DiscordProximityChat{
             Utils.WriteLine("Discord:" + level + " - " + message,MessageType.Error);
         }
 
-        static long GetUserID(){
+        public static long GetUserID(){
             long id = 0;
             try{
                 id = discord.GetUserManager().GetCurrentUser().Id;
@@ -74,6 +76,7 @@ namespace DiscordProximityChat{
                 
                 Utils.WriteLine("Sending QSB Message to " + info + " :: " + discordUserID + ")", MessageType.Info);
                 new DiscordIDMessage(QSBPlayerManager.LocalPlayerId, discordUserID){To = info.PlayerId}.Send();
+                new SharedSettingsMessage(Utils.Config, DiscordManager.GetUserID()){To = info.PlayerId}.Send();
             });
         }
 
@@ -131,8 +134,10 @@ namespace DiscordProximityChat{
             }
 
         }
+        
+        //This is where the real meat is happening
         public static void DiscordVolumeUpdater(){
-            float maxVol = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Global Volume");
+            float maxVol = Utils.Config.GetSettingsValue<float>("Global Volume");
             foreach (KeyValuePair<uint, long> playerKV in PlayerDiscordID){ //Explicit cause I'm bad at programming
                 if (!QSBPlayerManager.PlayerExists(playerKV.Key))
                     continue;
@@ -167,7 +172,7 @@ namespace DiscordProximityChat{
                 
                 float bolume = CalcBolume(dist);
 
-                if (DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Scout Speaker")){
+                if (Utils.Config.GetSettingsValue<bool>("Scout Speaker")){
                     //Probe acts as speaker
                     if (player.ProbeBody != null){
                         float probeCamDist = (player.ProbeBody.transform.position - Camera.current.transform.position).magnitude;
@@ -187,22 +192,44 @@ namespace DiscordProximityChat{
                 #region SignalScope
 
                 if(QSBPlayerManager.LocalPlayer.SignalscopeEquipped){
-                    if (QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals == null)
-                        continue;
-
                     if (Constants.PlayerSignals == null){
                         Utils.WriteLine("PlayerSignals is null, How did we get here?", MessageType.Error);
                         continue;
                     }
 
-                    if (Constants.PlayerSignals.TryGetValue(player, out AudioSignal signal)){
-                        bolume = Mathf.Max(bolume,Mathf.Clamp(maxVol *  signal._signalStrength, 0, maxVol));
+                    if (QSBPlayerManager.LocalPlayer.LocalSignalscope._strongestSignals != null){
+                        if (Constants.PlayerSignals.TryGetValue(player, out AudioSignal signal)){
+                            bolume = Mathf.Max(bolume, Mathf.Clamp(maxVol * signal._signalStrength, 0, maxVol));
+                        }
                     }
                 }
                 
                 #endregion
                 
-                if(DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Debug Mode"))
+                #region Bidirectional SignalScope
+
+                if (Utils.Config.GetSettingsValue<bool>("Bidirectional Signalscope")){
+                    if (DiscordManager.sharedSettings[playerKV.Value].BidirectionalSignalscope){ //Only work if both players have it enabled
+                        if (player.LocalSignalscope._strongestSignals != null){
+                            //We only need to check the local player's signal but,
+                            //We don't have a signal on the local player...
+                            //I wonder what this is suppost to output
+                            foreach (AudioSignal signal in player.LocalSignalscope._strongestSignals){
+                                //Very good chance of this just not working... potentially even crashing
+                                Utils.WriteLine("Trying Bidirectional Signalscope with " + signal.GetName());
+                                if (signal.GetName() == Constants.PlayerSignalNames[QSBPlayerManager.LocalPlayer]){
+                                    bolume = Mathf.Max(bolume, Mathf.Clamp(maxVol * signal._signalStrength, 0, maxVol));
+                                }
+                            }
+                            //Set bolume to something?
+                            
+                        }
+                    }
+                }
+
+                #endregion
+                
+                if(Utils.Config.GetSettingsValue<bool>("Debug Mode"))
                     Utils.WriteLine("bolume for " + player.Name + " : " + bolume + " | " + discord.GetVoiceManager().GetLocalVolume(playerKV.Key), MessageType.Info);
                 
                 discord.GetVoiceManager().SetLocalVolume(playerKV.Value, (byte)bolume);
@@ -210,11 +237,11 @@ namespace DiscordProximityChat{
         }
 
         private static float CalcBolume(float dist){
-            float a = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Audio Falloff Offset (A)");
-            float b = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Audio Falloff Power (B)");
-            float maxVol = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Global Volume");
-            float maxDist = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<float>("Max Audio Distance");
-            bool clip = DiscordProximityChat.instance.ModHelper.Config.GetSettingsValue<bool>("Mute at Max Distance");
+            float a = Utils.Config.GetSettingsValue<float>("Audio Falloff Offset (A)");
+            float b = Utils.Config.GetSettingsValue<float>("Audio Falloff Power (B)");
+            float maxVol = Utils.Config.GetSettingsValue<float>("Global Volume");
+            float maxDist = Utils.Config.GetSettingsValue<float>("Max Audio Distance");
+            bool clip = Utils.Config.GetSettingsValue<bool>("Mute at Max Distance");
             
             return Mathf.Clamp(maxVol * Utils.CalculateProximityVolume(1 - ((maxDist - dist) / maxDist), a, b, clip), 0, maxVol);
         }

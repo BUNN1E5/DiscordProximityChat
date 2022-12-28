@@ -31,10 +31,6 @@
       <HintPath>..\lib\Mirror.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="OuterWildsMMO">
-      <HintPath>..\lib\OuterWildsMMO.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="QSB">
       <HintPath>..\lib\QSB.dll</HintPath>
       <Private>False</Private>
