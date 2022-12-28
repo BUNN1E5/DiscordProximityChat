@@ -37,4 +37,8 @@
       <HintPath>..\lib\QSB.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="QSB-OWO\CompatLayer" />
+    <Folder Include="QSB-OWO\OWO" />
+  </ItemGroup>
 </Project>
