@@ -22,6 +22,8 @@
     "Mute at Max Distance" : true,
     "Player Head Bobbing": true,
     "Player HUD Icon Bobbing": true,
+    "Player MAP Icon Bobbing": true,
+    "Hologram Pool Speaker": true,
     "Scout Speaker": true,
     "Bidirectional Signalscope": false,
     "Debug Mode": false

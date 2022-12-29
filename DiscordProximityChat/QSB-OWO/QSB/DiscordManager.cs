@@ -7,6 +7,7 @@ using OWML.Common;
 using QSB.Player.TransformSync;
 using UnityEngine;
 using QSB;
+using QSB.PoolSync;
 
 namespace DiscordProximityChat{
     public static class DiscordManager{
@@ -224,6 +225,18 @@ namespace DiscordProximityChat{
                             //Set bolume to something?
                             
                         }
+                    }
+                }
+
+                #endregion
+
+                #region Holograph Pool
+                if(Utils.Config.GetSettingsValue<bool>("Hologram Pool Speaker"))
+                foreach (var dict in CustomNomaiRemoteCameraPlatform.CustomPlatformList){
+                    GameObject go = dict._playerToHologram[player];
+                    if (go.activeSelf){
+                        float holographDist = (player.Camera.transform.position - go.transform.position).magnitude;
+                        bolume = Mathf.Max(bolume,CalcBolume(holographDist));
                     }
                 }
 

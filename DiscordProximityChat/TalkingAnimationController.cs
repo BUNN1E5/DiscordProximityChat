@@ -48,8 +48,8 @@ namespace DiscordProximityChat{
                 Utils.RunWhen(() => existingComponent.HUDMarker != null,() => {
                     existingComponent.HUDMarker = info.HudMarker; //Silly But Doesn't seem to work otherwise
                 });
-                Utils.RunWhen(() => existingComponent.HUDMarker != null,() => {
-                    existingComponent.MapMarker = info.Body.GetComponent<PlayerMapMarker>(); 
+                Utils.RunWhen(() => existingComponent.MapMarker != null,() => {
+                    existingComponent.MapMarker = info.MapMarker; 
                 });
             }
             return existingComponent;
@@ -67,10 +67,6 @@ namespace DiscordProximityChat{
         
         public PlayerMapMarker MapMarker;
 
-        private void Start(){
-            
-        }
-
         public void SetHUDMarker(PlayerHUDMarker hudMarker){
             this.HUDMarker = hudMarker;
             OnScreenMarker = HUDMarker._canvasMarker._marker;
@@ -87,7 +83,7 @@ namespace DiscordProximityChat{
                 var animationTime = Time.time * animationSpeed;
                 var multiplier = animationSpeed * animationAmplitude;
                 var offset = 1 - animationAmplitude * 0.5f;
-                var x = Mathf.Sin(animationTime) ;
+                var x = Mathf.Sin(animationTime);
                 var z = Mathf.Cos(animationTime);
                 if (Utils.Config.GetSettingsValue<bool>("Player Head Bobbing")){
                     transform.localScale = new Vector3(x * multiplier + offset, 1, z * multiplier + offset);
@@ -104,6 +100,13 @@ namespace DiscordProximityChat{
                         OffScreenMarker.material.color = new Color(0, x, 0);
                     }
                 }
+
+                if(Utils.Config.GetSettingsValue<bool>("Player MAP Icon Bobbing")){
+                    if (MapMarker != null){
+                        MapMarker.transform.localScale = new Vector3(x, 1, z);
+                        MapMarker._canvasMarker._pointerImg.color = new Color(0, x, 0);
+                    }
+                }
             } else {
                 transform.localScale = Vector3.one;
                 
@@ -115,6 +118,11 @@ namespace DiscordProximityChat{
                 if (OffScreenMarker != null){
                     OffScreenMarker.transform.localScale = Vector3.one;
                     OffScreenMarker.material.color = new Color(1, 1, 1, 1);
+                }
+                
+                if (MapMarker != null){
+                    MapMarker.transform.localScale = Vector3.one;
+                    MapMarker._canvasMarker._pointerImg.color = new Color(1, 1, 1, 1);
                 }
             }
         }
